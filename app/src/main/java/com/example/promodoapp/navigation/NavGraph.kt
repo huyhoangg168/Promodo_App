@@ -1,5 +1,7 @@
 package com.example.promodoapp.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import com.example.promodoapp.repository.AuthRepository
@@ -11,7 +13,10 @@ import com.google.accompanist.navigation.animation.composable
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.navigation.compose.composable
+import com.example.promodoapp.statistics.ui.ReportScreen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 /*fun NavGraph() {
@@ -58,38 +63,39 @@ fun NavGraph() {
     AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
-//        enterTransition = { slideInHorizontally { it } },
-//        exitTransition = { slideOutHorizontally { -it } },
-//        popEnterTransition = { slideInHorizontally { -it } },
-//        popExitTransition = { slideOutHorizontally { it } }
-        enterTransition = {
-            scaleIn(
-                initialScale = 0.9f,
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        exitTransition = {
-            scaleOut(
-                targetScale = 1.1f,
-                animationSpec = tween(200, easing = FastOutSlowInEasing)
-            ) + fadeOut(animationSpec = tween(200))
-        },
-        popEnterTransition = {
-            scaleIn(
-                initialScale = 0.9f,
-                animationSpec = tween(300, easing = FastOutSlowInEasing)
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            scaleOut(
-                targetScale = 1.1f,
-                animationSpec = tween(200, easing = FastOutSlowInEasing)
-            ) + fadeOut(animationSpec = tween(200))
-        }
+        enterTransition = { slideInHorizontally { it } },
+        exitTransition = { slideOutHorizontally { -it } },
+        popEnterTransition = { slideInHorizontally { -it } },
+        popExitTransition = { slideOutHorizontally { it } }
+//        enterTransition = {
+//            scaleIn(
+//                initialScale = 0.9f,
+//                animationSpec = tween(300, easing = FastOutSlowInEasing)
+//            ) + fadeIn(animationSpec = tween(300))
+//        },
+//        exitTransition = {
+//            scaleOut(
+//                targetScale = 1.1f,
+//                animationSpec = tween(200, easing = FastOutSlowInEasing)
+//            ) + fadeOut(animationSpec = tween(200))
+//        },
+//        popEnterTransition = {
+//            scaleIn(
+//                initialScale = 0.9f,
+//                animationSpec = tween(300, easing = FastOutSlowInEasing)
+//            ) + fadeIn(animationSpec = tween(300))
+//        },
+//        popExitTransition = {
+//            scaleOut(
+//                targetScale = 1.1f,
+//                animationSpec = tween(200, easing = FastOutSlowInEasing)
+//            ) + fadeOut(animationSpec = tween(200))
+//        }
     ) {
         composable(Screen.Login.route){ LoginScreen(navController) }
         composable(Screen.Register.route){ RegisterScreen(navController) }
         composable(Screen.Main.route){ MainScreen(navController) }
+        composable(Screen.Statistics.route){ ReportScreen(navController) }
 
     }
 }

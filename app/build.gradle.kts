@@ -72,5 +72,8 @@ dependencies {
 
     implementation ("com.google.firebase:firebase-firestore-ktx:24.10.0")
 
+    // Push Notification
+    implementation ("androidx.core:core:1.12.0")
+
 }
 

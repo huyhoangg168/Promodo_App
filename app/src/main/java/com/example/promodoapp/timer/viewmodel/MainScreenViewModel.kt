@@ -1,14 +1,17 @@
 package com.example.promodoapp.timer.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.promodoapp.model.Session
 import com.example.promodoapp.repository.AuthRepository
 import com.example.promodoapp.repository.UserRepository
 import com.example.promodoapp.timer.ui.Mode
 import com.example.promodoapp.timer.ui.TimerState
+import com.example.promodoapp.utils.NotificationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -47,6 +50,13 @@ class MainScreenViewModel : ViewModel() {
     // Trạng thái video hiện tại (study hoặc chill)
     private val _currentVideo: MutableState<VideoType> = mutableStateOf(VideoType.Study)
     val currentVideo: MutableState<VideoType> = _currentVideo
+
+    // Trạng thái thông báo giai đoạn (để thông báo cho UI)
+    private val _phaseChangeEvent: MutableState<PhaseChangeEvent?> = mutableStateOf(null)
+    val phaseChangeEvent: MutableState<PhaseChangeEvent?> = _phaseChangeEvent
+
+    // Biến để lưu thời gian bắt đầu của phiên hiện tại
+    private var currentSessionStartTime: Long = 0
 
     // Job để đếm giờ
     private var timerJob: Job? = null
@@ -91,6 +101,7 @@ class MainScreenViewModel : ViewModel() {
     fun startTimer() {
         if (_timerState.value != TimerState.Running) {
             _timerState.value = TimerState.Running
+            currentSessionStartTime = System.currentTimeMillis()
             startCountdown()
         }
     }
@@ -110,16 +121,37 @@ class MainScreenViewModel : ViewModel() {
         _currentVideo.value = VideoType.Study
         _currentTime.value = _workTime.value * 60
         cycleCompleted = false
+        currentSessionStartTime = 0
     }
 
     // Hủy đếm giờ
     fun cancelTimer() {
+        // Lưu phiên bị hủy
+        val currentUser = authRepository.getCurrentUser()
+        if (currentUser != null && currentSessionStartTime > 0) {
+            val session = Session(
+                userId = currentUser.uid,
+                type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
+                duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
+                completed = false
+            )
+            viewModelScope.launch {
+                try {
+                    userRepository.saveSession(session)
+                    Log.d("MainViewModel", "Saved canceled session: ${session.type}")
+                } catch (e: Exception) {
+                    Log.e("MainViewModel", "Failed to save canceled session: ${e.message}")
+                }
+            }
+        }
+
         timerJob?.cancel()
         _timerState.value = TimerState.Idle
         _isWorkPhase.value = true
         _currentVideo.value = VideoType.Study
         _currentTime.value = _workTime.value * 60
         cycleCompleted = false
+        currentSessionStartTime = 0
     }
 
     // Cập nhật chế độ (Pomodoro hoặc Custom)
@@ -144,15 +176,38 @@ class MainScreenViewModel : ViewModel() {
 
     // Hàm chuyển giai đoạn (học → nghỉ hoặc nghỉ → học)
     private fun switchPhase() {
+        // Lưu phiên vừa hoàn thành
+        val currentUser = authRepository.getCurrentUser()
+        if (currentUser != null && currentSessionStartTime > 0) {
+            val session = Session(
+                userId = currentUser.uid,
+                type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
+                duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
+                completed = true
+            )
+            viewModelScope.launch {
+                try {
+                    userRepository.saveSession(session)
+                    Log.d("MainViewModel", "Saved session: ${session.type}")
+                } catch (e: Exception) {
+                    Log.e("MainViewModel", "Failed to save session: ${e.message}")
+                }
+            }
+        }
+
         _isWorkPhase.value = !_isWorkPhase.value
         if (!_isWorkPhase.value) {
             cycleCompleted = true
             _currentVideo.value = VideoType.Chill // Chuyển sang video chilling
             Log.d("MainViewModel", "Switched to Break phase. Video: ${_currentVideo.value}")
+            // Phát tín hiệu chuyển giai đoạn
+            _phaseChangeEvent.value = PhaseChangeEvent.WorkToBreak
         } else {
             _currentVideo.value = VideoType.Study // Chuyển sang video học bài
             Log.d("MainViewModel", "Switched to Work phase. Video: ${_currentVideo.value}")
             if (cycleCompleted) {
+                // Phát tín hiệu chuyển giai đoạn
+                _phaseChangeEvent.value = PhaseChangeEvent.BreakToWork
                 // Thưởng xu khi quay lại giai đoạn học sau một chu kỳ
                 rewardCoins()
                 cycleCompleted = false
@@ -160,6 +215,7 @@ class MainScreenViewModel : ViewModel() {
         }
         _currentTime.value = if (_isWorkPhase.value) _workTime.value * 60 else _breakTime.value * 60
         _timerState.value = TimerState.Paused // Dừng lại, đợi người dùng nhấn Play
+        currentSessionStartTime = System.currentTimeMillis()
     }
 
     // Hàm thưởng xu
@@ -202,6 +258,16 @@ class MainScreenViewModel : ViewModel() {
     fun logout() {
         authRepository.logout()
     }
+
+    // Reset sự kiện chuyển giai đoạn sau khi UI xử lý
+    fun resetPhaseChangeEvent() {
+        _phaseChangeEvent.value = null
+    }
+}
+
+// Enum để biểu thị sự kiện chuyển giai đoạn
+enum class PhaseChangeEvent {
+    WorkToBreak, BreakToWork
 }
 
 enum class VideoType{

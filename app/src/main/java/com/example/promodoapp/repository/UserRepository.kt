@@ -2,6 +2,7 @@ package com.example.promodoapp.repository
 
 import android.util.Log
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.promodoapp.model.Session
 import com.example.promodoapp.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -49,6 +50,19 @@ class UserRepository {
             Log.d("UserRepository", "User updated successfully: ${user.email}")
         } catch (e: Exception) {
             Log.e("UserRepository", "Failed to update user: ${e.message}")
+            throw e
+        }
+    }
+
+    // Lưu một phiên học vào collection sessions
+    suspend fun saveSession(session: Session) {
+        try {
+            Log.d("UserRepository", "Saving session for user: ${session.userId}, type: ${session.type}")
+            val sessionRef = db.collection("sessions").document()
+            sessionRef.set(session).await()
+            Log.d("UserRepository", "Session saved successfully")
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Failed to save session: ${e.message}")
             throw e
         }
     }

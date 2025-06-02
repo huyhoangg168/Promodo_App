@@ -23,8 +23,12 @@ drawable img_coin
 drawable img_logo
 mipmap ic_launcher
 mipmap ic_launcher_round
+raw coin_recieve
+raw notify_end
 raw vd_chilling
+raw vd_chilling2
 raw vd_working
+raw vd_working2
 string app_name
 string gcm_defaultSenderId
 string google_api_key

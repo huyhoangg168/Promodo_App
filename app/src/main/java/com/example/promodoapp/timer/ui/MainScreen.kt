@@ -1,8 +1,12 @@
 package com.example.promodoapp.timer.ui
 
+import android.Manifest
 import android.util.Log
 import android.view.ViewGroup
+import android.widget.Toast
 import android.widget.VideoView
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +41,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
+import com.example.promodoapp.timer.viewmodel.PhaseChangeEvent
 import com.example.promodoapp.timer.viewmodel.VideoType
+import com.example.promodoapp.utils.NotificationHelper
 
 @Preview
 @Composable
@@ -60,6 +66,30 @@ fun MainScreen(
     // Hiển thị dialog tùy chỉnh thời gian
     var showCustomDialog by remember { mutableStateOf(false) }
 
+    // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13 trở lên
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            Log.d("MainScreen", "POST_NOTIFICATIONS permission granted")
+        } else {
+            Log.w("MainScreen", "POST_NOTIFICATIONS permission denied")
+        }
+    }
+
+    // Kiểm tra và yêu cầu quyền khi khởi động
+    LaunchedEffect(Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (!hasPermission) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
     // Cập nhật video khi chuyển giai đoạn
     LaunchedEffect(viewModel.currentVideo.value) {
         Log.d("MainScreen", "Current video changed to: ${viewModel.currentVideo.value}")
@@ -69,7 +99,7 @@ fun MainScreen(
         val videoResId = if (viewModel.currentVideo.value == VideoType.Study) {
             R.raw.vd_working
         } else {
-            R.raw.vd_chilling
+            R.raw.vd_chilling2
         }
         videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
 
@@ -77,6 +107,39 @@ fun MainScreen(
             videoViewInstance?.start()
         }
     }
+
+    // Hiển thị thông báo khi chuyển giai đoạn
+    LaunchedEffect(viewModel.phaseChangeEvent.value) {
+        viewModel.phaseChangeEvent.value?.let { event ->
+            when (event) {
+                PhaseChangeEvent.WorkToBreak -> {
+                    // Kết thúc phiên học, chuyển sang phiên nghỉ
+                    NotificationHelper.showNotification(
+                        context = context,
+                        title = "Hết thời gian học!",
+                        message = "Đã hoàn thành thời gian học (${viewModel.workTime.value} phút), đến thời gian nghỉ (${viewModel.breakTime.value} phút)!"
+                    )
+                }
+                PhaseChangeEvent.BreakToWork -> {
+                    // Kết thúc phiên nghỉ, chuyển sang phiên học
+                    NotificationHelper.showNotification(
+                        context = context,
+                        title = "Hết thời gian nghỉ!",
+                        message = "Đã hoàn thành thời gian nghỉ (${viewModel.breakTime.value} phút), đến thời gian học (${viewModel.workTime.value} phút)!"
+                    )
+                }
+            }
+            // Reset sự kiện sau khi xử lý
+            viewModel.resetPhaseChangeEvent()
+        }
+    }
+
+//    // Hiển thị thông báo khi số xu thay đổi
+//    LaunchedEffect(viewModel.coins.value) {
+//        if (viewModel.coins.value > 0) {
+//            Toast.makeText(context, "Bạn đã nhận được 10 xu!", Toast.LENGTH_SHORT).show()
+//        }
+//    }
 
     Scaffold(
         bottomBar = {
@@ -97,7 +160,9 @@ fun MainScreen(
                     icon = { Icon(painterResource(id = R.drawable.ic_settings), contentDescription = "Settings") },
                     label = { Text("Settings") },
                     selected = false,
-                    onClick = { navController.navigate(Screen.Settings.route) }
+                    onClick = {
+                        Toast.makeText(context, "Coming soon", Toast.LENGTH_LONG).show()
+                    }
                 )
             }
         }
@@ -348,108 +413,18 @@ fun MainScreen(
 
     // Dialog tùy chỉnh thời gian
     if (showCustomDialog) {
-        var customWorkTime by remember { mutableStateOf(viewModel.workTime.value) }
-        var customBreakTime by remember { mutableStateOf(viewModel.breakTime.value) }
-
-        AlertDialog(
-            onDismissRequest = { showCustomDialog = false },
-            title = { Text("Select Mode") },
-            text = {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        Button(
-                            onClick = {
-                                viewModel.setMode(Mode.Pomodoro)
-                                showCustomDialog = false
-                            }
-                        ) {
-                            Text("Pomodoro (25/5)")
-                        }
-                        Button(
-                            onClick = {
-                                viewModel.setMode(Mode.Custom, customWorkTime, customBreakTime)
-                            }
-                        ) {
-                            Text("Custom")
-                        }
-                    }
-
-                    if (viewModel.mode.value == Mode.Custom) {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Work Time (minutes):")
-                        TextField(
-                            value = customWorkTime.toString(),
-                            onValueChange = { customWorkTime = it.toIntOrNull() ?: customWorkTime },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text("Break Time (minutes):")
-                        TextField(
-                            value = customBreakTime.toString(),
-                            onValueChange = { customBreakTime = it.toIntOrNull() ?: customBreakTime },
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                if (viewModel.mode.value == Mode.Custom) {
-                    Button(
-                        onClick = {
-                            viewModel.setMode(Mode.Custom, customWorkTime, customBreakTime)
-                            showCustomDialog = false
-                        }
-                    ) {
-                        Text("OK")
-                    }
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showCustomDialog = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
+        CustomTimeDialog(
+            viewModel = viewModel,
+            onDismiss = { showCustomDialog = false }
         )
     }
 
     // Dialog nhập quotes
     if (showQuoteDialog) {
-        var newQuote by remember { mutableStateOf(quote) }
-        AlertDialog(
-            onDismissRequest = { showQuoteDialog = false },
-            title = { Text("Enter Your Quote") },
-            text = {
-                TextField(
-                    value = newQuote,
-                    onValueChange = { newQuote = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Enter your motivational quote") }
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        if (newQuote.isNotBlank()) {
-                            quote = newQuote
-                        }
-                        showQuoteDialog = false
-                    }
-                ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                Button(
-                    onClick = { showQuoteDialog = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
+        QuoteDialog(
+            currentQuote = quote,
+            onQuoteChange = { newQuote -> quote = newQuote },
+            onDismiss = { showQuoteDialog = false }
         )
     }
 }

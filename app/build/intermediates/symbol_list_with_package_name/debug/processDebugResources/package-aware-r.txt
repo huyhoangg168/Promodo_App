@@ -279,9 +279,13 @@ layout notification_template_part_chronometer
 layout notification_template_part_time
 mipmap ic_launcher
 mipmap ic_launcher_round
+raw coin_recieve
 raw firebase_common_keep
+raw notify_end
 raw vd_chilling
+raw vd_chilling2
 raw vd_working
+raw vd_working2
 string android_credentials_TYPE_PASSWORD_CREDENTIAL
 string androidx_credentials_TYPE_PUBLIC_KEY_CREDENTIAL
 string androidx_startup
