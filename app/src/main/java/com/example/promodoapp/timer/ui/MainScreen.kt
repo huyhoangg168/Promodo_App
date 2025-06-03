@@ -65,6 +65,10 @@ fun MainScreen(
     var showQuoteDialog by remember { mutableStateOf(false) }
     // Hiển thị dialog tùy chỉnh thời gian
     var showCustomDialog by remember { mutableStateOf(false) }
+    // Hiển thị dialog xác nhận khi nhấn Replay
+    var showReplayConfirmDialog by remember { mutableStateOf(false) }
+    // Hiển thị dialog xác nhận khi nhấn Cancel
+    var showCancelConfirmDialog by remember { mutableStateOf(false) }
 
     // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13 trở lên
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -332,8 +336,7 @@ fun MainScreen(
                             )
                         }
                         IconButton(onClick = {
-                            viewModel.resetTimer()
-                            videoViewInstance?.seekTo(0)
+                            showReplayConfirmDialog = true
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
@@ -342,9 +345,10 @@ fun MainScreen(
                             )
                         }
                         IconButton(onClick = {
-                            viewModel.cancelTimer()
-                            videoViewInstance?.seekTo(0)
-                            videoViewInstance?.pause()
+                            showCancelConfirmDialog = true
+//                            viewModel.cancelTimer()
+//                            videoViewInstance?.seekTo(0)
+//                            videoViewInstance?.pause()
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -377,8 +381,7 @@ fun MainScreen(
                             )
                         }
                         IconButton(onClick = {
-                            viewModel.resetTimer()
-                            videoViewInstance?.seekTo(0)
+                            showReplayConfirmDialog = true
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Refresh,
@@ -387,9 +390,10 @@ fun MainScreen(
                             )
                         }
                         IconButton(onClick = {
-                            viewModel.cancelTimer()
-                            videoViewInstance?.seekTo(0)
-                            videoViewInstance?.pause()
+                            showCancelConfirmDialog = true
+//                            viewModel.cancelTimer()
+//                            videoViewInstance?.seekTo(0)
+//                            videoViewInstance?.pause()
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -427,7 +431,40 @@ fun MainScreen(
             onDismiss = { showQuoteDialog = false }
         )
     }
+
+    // Dialog xác nhận khi nhấn Replay
+    if (showReplayConfirmDialog) {
+        ConfirmDialog(
+            message = "Bạn có muốn khởi động lại bộ hẹn giờ? Dữ liệu sẽ không được lưu!",
+            confirmButtonText = "Um",
+            dismissButtonText = "Hủy",
+            onConfirm = {
+                viewModel.resetTimer()
+                videoViewInstance?.seekTo(0)
+            },
+            onDismiss = {
+                showReplayConfirmDialog = false
+            }
+        )
+    }
+
+    //Dialog xác nhận khi ấn Cancel
+    if (showCancelConfirmDialog) {
+        ConfirmDialog(
+            message = "Bạn có muốn kết thúc phiên? Dữ liệu của bạn sẽ được lưu vào lịch sử!",
+            confirmButtonText = "Um",
+            dismissButtonText = "Hủy",
+            onConfirm = {
+                viewModel.cancelTimer()
+                videoViewInstance?.seekTo(0)
+            },
+            onDismiss = {
+                showCancelConfirmDialog = false
+            }
+        )
+    }
 }
+
 enum class TimerState {
     Idle, Running, Paused
 }

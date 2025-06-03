@@ -129,10 +129,17 @@ class MainScreenViewModel : ViewModel() {
         // Lưu phiên bị hủy
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null && currentSessionStartTime > 0) {
+            //Tính thời gian đã học từ lúc ấn start
+            val timeSpentInSeconds = when {
+                _isWorkPhase.value -> _workTime.value * 60 - _currentTime.value
+                else -> _breakTime.value * 60 - _currentTime.value
+            }
+            val timeSpentInMinutes = (timeSpentInSeconds / 60).coerceAtLeast(1)
+
             val session = Session(
                 userId = currentUser.uid,
                 type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
-                duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
+                duration = timeSpentInMinutes,
                 completed = false
             )
             viewModelScope.launch {
@@ -195,6 +202,7 @@ class MainScreenViewModel : ViewModel() {
             }
         }
 
+        //Chuyển chế giữa chế độ 
         _isWorkPhase.value = !_isWorkPhase.value
         if (!_isWorkPhase.value) {
             cycleCompleted = true

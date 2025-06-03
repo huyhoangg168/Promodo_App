@@ -27,6 +27,7 @@ object NotificationHelper {
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
                 setSound(null, null)
+                enableVibration(false)
             }
             val notificationManager: NotificationManager =
                 context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -63,6 +64,8 @@ object NotificationHelper {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setSound(null)
+            .setDefaults(0) // Tắt tất cả các mặc định (âm thanh, rung, đèn)
+            .setCategory(NotificationCompat.CATEGORY_ALARM) // Tăng khả năng hiển thị heads-up
 
         // Hiển thị thông báo
         try {
