@@ -15,6 +15,8 @@ import com.example.promodoapp.utils.NotificationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainScreenViewModel : ViewModel() {
     private val authRepository = AuthRepository()
@@ -102,8 +104,8 @@ class MainScreenViewModel : ViewModel() {
         if (_timerState.value != TimerState.Running) {
             _timerState.value = TimerState.Running
             currentSessionStartTime = System.currentTimeMillis()
-            startCountdown()
         }
+        startCountdown()
     }
 
     // Tạm dừng đếm giờ
@@ -129,15 +131,20 @@ class MainScreenViewModel : ViewModel() {
         // Lưu phiên bị hủy
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null && currentSessionStartTime > 0) {
+            val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+            val date = dateFormatter.format(Date(currentSessionStartTime))
             val session = Session(
                 userId = currentUser.uid,
                 type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
                 duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
-                completed = false
+                completed = false,
+                date = date,
+                startTime = currentSessionStartTime
             )
             viewModelScope.launch {
                 try {
-                    userRepository.saveSession(session)
+                    // Sử dụng collection mới "sessions_new"
+                    userRepository.saveSession(session, "sessions_new")
                     Log.d("MainViewModel", "Saved canceled session: ${session.type}")
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to save canceled session: ${e.message}")
@@ -154,17 +161,11 @@ class MainScreenViewModel : ViewModel() {
         currentSessionStartTime = 0
     }
 
-    // Cập nhật chế độ (Pomodoro hoặc Custom)
-    fun setMode(newMode: Mode, newWorkTime: Int? = null, newBreakTime: Int? = null) {
-        updateMode(newMode, newWorkTime, newBreakTime)
-        resetTimer()
-    }
-
     // Hàm đếm giờ
     private fun startCountdown() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            while (_currentTime.value > 0  && _timerState.value == TimerState.Running) {
+            while (_currentTime.value > 0 && _timerState.value == TimerState.Running) {
                 delay(1000)
                 _currentTime.value -= 1
                 if (_currentTime.value == 0) {
@@ -179,15 +180,20 @@ class MainScreenViewModel : ViewModel() {
         // Lưu phiên vừa hoàn thành
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null && currentSessionStartTime > 0) {
+            val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+            val date = dateFormatter.format(Date(currentSessionStartTime))
             val session = Session(
                 userId = currentUser.uid,
                 type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
                 duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
-                completed = true
+                completed = true,
+                date = date,
+                startTime = currentSessionStartTime
             )
             viewModelScope.launch {
                 try {
-                    userRepository.saveSession(session)
+                    // Sử dụng collection mới "sessions_new"
+                    userRepository.saveSession(session, "sessions_new")
                     Log.d("MainViewModel", "Saved session: ${session.type}")
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to save session: ${e.message}")
@@ -241,6 +247,12 @@ class MainScreenViewModel : ViewModel() {
         }
     }
 
+    // Cập nhật chế độ (Pomodoro hoặc Custom)
+    fun setMode(newMode: Mode, newWorkTime: Int? = null, newBreakTime: Int? = null) {
+        updateMode(newMode, newWorkTime, newBreakTime)
+        resetTimer()
+    }
+
     // Hàm cập nhật chế độ
     private fun updateMode(newMode: Mode, newWorkTime: Int? = null, newBreakTime: Int? = null) {
         _mode.value = newMode
@@ -270,6 +282,6 @@ enum class PhaseChangeEvent {
     WorkToBreak, BreakToWork
 }
 
-enum class VideoType{
+enum class VideoType {
     Study, Chill
 }
