@@ -19,20 +19,36 @@ object NotificationHelper {
     private const val NOTIFICATION_ID = 1
 
     // Tạo kênh thông báo (cho Android 8.0 trở lên)
+//    private fun createNotificationChannel(context: Context) {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val name = "Pomodoro Notifications"
+//            val descriptionText = "Notifications for Pomodoro timer events"
+//            val importance = NotificationManager.IMPORTANCE_HIGH
+//            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+//                description = descriptionText
+//                setSound(null, null)
+//                enableVibration(false)
+//            }
+//            val notificationManager: NotificationManager =
+//                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//            notificationManager.deleteNotificationChannel(CHANNEL_ID)
+//            notificationManager.createNotificationChannel(channel)
+//        }
+//    }
     private fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Pomodoro Notifications"
-            val descriptionText = "Notifications for Pomodoro timer events"
-            val importance = NotificationManager.IMPORTANCE_HIGH
-            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-                description = descriptionText
-                setSound(null, null)
-                enableVibration(false)
+            val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
+                val name = "Pomodoro Notifications"
+                val descriptionText = "Notifications for Pomodoro timer events"
+                val importance = NotificationManager.IMPORTANCE_HIGH
+                val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+                    description = descriptionText
+//                    setSound(null, null)
+//                    enableVibration(false)
+                }
+                notificationManager.createNotificationChannel(channel)
             }
-            val notificationManager: NotificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.deleteNotificationChannel(CHANNEL_ID)
-            notificationManager.createNotificationChannel(channel)
         }
     }
 
@@ -48,7 +64,6 @@ object NotificationHelper {
             if (!hasPermission) {
                 Log.w("NotificationHelper", "Cannot show notification: POST_NOTIFICATIONS permission not granted")
                 // Vẫn phát âm thanh dù không có quyền thông báo
-                playSound(context)
                 return
             }
         }
@@ -63,9 +78,8 @@ object NotificationHelper {
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .setSound(null)
-            .setDefaults(0) // Tắt tất cả các mặc định (âm thanh, rung, đèn)
-            .setCategory(NotificationCompat.CATEGORY_ALARM) // Tăng khả năng hiển thị heads-up
+            .setDefaults(NotificationCompat.DEFAULT_SOUND)
+
 
         // Hiển thị thông báo
         try {
@@ -75,31 +89,29 @@ object NotificationHelper {
         } catch (e: SecurityException) {
             Log.e("NotificationHelper", "SecurityException: ${e.message}")
             // Vẫn phát âm thanh dù không thể hiển thị thông báo
-            playSound(context)
         }
 
         // Phát âm thanh
-        playSound(context)
     }
 
     // Phát âm thanh thông báo
-    private fun playSound(context: Context) {
-        val soundPool: SoundPool = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val audioAttributes = AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .build()
-            SoundPool.Builder()
-                .setMaxStreams(1)
-                .setAudioAttributes(audioAttributes)
-                .build()
-        } else {
-            SoundPool(1, android.media.AudioManager.STREAM_NOTIFICATION, 0)
-        }
-
-        val soundId = soundPool.load(context, R.raw.notify_end, 1)
-        soundPool.setOnLoadCompleteListener { _, _, _ ->
-            soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
-        }
-    }
+//    private fun playSound(context: Context) {
+//        val soundPool: SoundPool = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            val audioAttributes = AudioAttributes.Builder()
+//                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+//                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+//                .build()
+//            SoundPool.Builder()
+//                .setMaxStreams(1)
+//                .setAudioAttributes(audioAttributes)
+//                .build()
+//        } else {
+//            SoundPool(1, android.media.AudioManager.STREAM_NOTIFICATION, 0)
+//        }
+//
+//        val soundId = soundPool.load(context, R.raw.notify_end, 1)
+//        soundPool.setOnLoadCompleteListener { _, _, _ ->
+//            soundPool.play(soundId, 0.5f, 0.5f, 0, 0, 1f)
+//        }
+//    }
 }

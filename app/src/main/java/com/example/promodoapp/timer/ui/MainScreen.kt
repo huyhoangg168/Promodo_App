@@ -1,6 +1,7 @@
 package com.example.promodoapp.timer.ui
 
 import android.Manifest
+import android.media.MediaPlayer
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.Toast
@@ -44,6 +45,7 @@ import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.PhaseChangeEvent
 import com.example.promodoapp.timer.viewmodel.VideoType
 import com.example.promodoapp.utils.NotificationHelper
+import com.example.promodoapp.utils.SoundManager
 
 @Preview
 @Composable
@@ -60,7 +62,7 @@ fun MainScreen(
     val context = LocalContext.current
     var videoViewInstance by remember { mutableStateOf<VideoView?>(null) }
     // Biến để lưu câu quotes
-    var quote by remember { mutableStateOf("Stay focused and keep going!") }
+    val quote = viewModel.quote.value
     // Hiển thị dialog nhập quotes
     var showQuoteDialog by remember { mutableStateOf(false) }
     // Hiển thị dialog tùy chỉnh thời gian
@@ -69,7 +71,8 @@ fun MainScreen(
     var showReplayConfirmDialog by remember { mutableStateOf(false) }
     // Hiển thị dialog xác nhận khi nhấn Cancel
     var showCancelConfirmDialog by remember { mutableStateOf(false) }
-
+    //Biến để lưu số coin trước khi được cộng
+    var previousCoins by remember { mutableStateOf(viewModel.coins.value) }
     // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13 trở lên
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -138,12 +141,17 @@ fun MainScreen(
         }
     }
 
-//    // Hiển thị thông báo khi số xu thay đổi
-//    LaunchedEffect(viewModel.coins.value) {
-//        if (viewModel.coins.value > 0) {
-//            Toast.makeText(context, "Bạn đã nhận được 10 xu!", Toast.LENGTH_SHORT).show()
-//        }
-//    }
+    //Phát âm thanh khi được cộng xu
+    LaunchedEffect(viewModel.coins.value) {
+        if (viewModel.coins.value > previousCoins) {
+            try {
+                SoundManager.playCoin()
+            } catch (e: Exception) {
+                Log.e("MainScreen", "Error playing sound: ${e.message}")
+            }
+        }
+        previousCoins = viewModel.coins.value
+    }
 
     Scaffold(
         bottomBar = {
@@ -227,7 +235,7 @@ fun MainScreen(
                             }
                     )
                     Text(
-                        text = "Pomodoro",
+                        text = if (viewModel.mode.value == Mode.Pomodoro) "Pomodoro" else "Custom",
                         fontSize = 28.sp,
                         modifier = Modifier.padding(end = 8.dp)
                     )
@@ -346,9 +354,6 @@ fun MainScreen(
                         }
                         IconButton(onClick = {
                             showCancelConfirmDialog = true
-//                            viewModel.cancelTimer()
-//                            videoViewInstance?.seekTo(0)
-//                            videoViewInstance?.pause()
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -391,9 +396,6 @@ fun MainScreen(
                         }
                         IconButton(onClick = {
                             showCancelConfirmDialog = true
-//                            viewModel.cancelTimer()
-//                            videoViewInstance?.seekTo(0)
-//                            videoViewInstance?.pause()
                         }) {
                             Icon(
                                 imageVector = Icons.Default.Close,
@@ -427,7 +429,7 @@ fun MainScreen(
     if (showQuoteDialog) {
         QuoteDialog(
             currentQuote = quote,
-            onQuoteChange = { newQuote -> quote = newQuote },
+            onQuoteChange = { newQuote -> viewModel.updateQuote(newQuote) },
             onDismiss = { showQuoteDialog = false }
         )
     }

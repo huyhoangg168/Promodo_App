@@ -13,10 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.promodoapp.navigation.NavGraph
 import com.example.promodoapp.ui.theme.PromodoAppTheme
+import com.example.promodoapp.utils.SoundManager
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SoundManager.init(applicationContext)
         enableEdgeToEdge()
         setContent {
             PromodoAppTheme {

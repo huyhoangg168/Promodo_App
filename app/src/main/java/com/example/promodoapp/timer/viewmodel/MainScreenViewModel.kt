@@ -43,7 +43,7 @@ class MainScreenViewModel : ViewModel() {
     private val _isWorkPhase: MutableState<Boolean> = mutableStateOf(true)
     val isWorkPhase: MutableState<Boolean> = _isWorkPhase
 
-    // Số xu (lưu trong state tạm thời)
+    // Số xu
     private val _coins: MutableState<Int> = mutableStateOf(100)
     val coins: MutableState<Int> = _coins
 
@@ -64,6 +64,10 @@ class MainScreenViewModel : ViewModel() {
     // Biến để kiểm tra chu kỳ hoàn thành
     private var cycleCompleted = false
 
+    //Biến quote
+    private val _quote: MutableState<String> = mutableStateOf("Stay focused and keep going!")
+    val quote: MutableState<String> = _quote
+
     // Khởi tạo: Tải số xu từ Firestore
     init {
         loadUserCoins()
@@ -79,6 +83,7 @@ class MainScreenViewModel : ViewModel() {
                     if (user != null) {
                         _coins.value = user.coins
                         Log.d("MainViewModel", "Loaded coins from Firestore: ${user.coins}")
+                        _quote.value = user.quote
                     } else {
                         // Nếu người dùng chưa có tài liệu, khởi tạo với 0 xu
                         val newUser = currentUser.copy(coins = 0)
@@ -270,6 +275,23 @@ class MainScreenViewModel : ViewModel() {
     // Reset sự kiện chuyển giai đoạn sau khi UI xử lý
     fun resetPhaseChangeEvent() {
         _phaseChangeEvent.value = null
+    }
+
+    //Hàm cập nhật quote
+    fun updateQuote(newQuote: String) {
+        _quote.value = newQuote
+        val currentUser = authRepository.getCurrentUser()
+        if (currentUser != null) {
+            viewModelScope.launch {
+                try {
+                    val updatedUser = currentUser.copy(coins = _coins.value, quote = newQuote)
+                    userRepository.updateUser(updatedUser)
+                    Log.d("MainViewModel", "Quote updated to Firestore: $newQuote")
+                } catch (e: Exception) {
+                    Log.e("MainViewModel", "Failed to update quote: ${e.message}")
+                }
+            }
+        }
     }
 }
 
