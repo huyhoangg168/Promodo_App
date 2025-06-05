@@ -3,9 +3,10 @@ package com.example.promodoapp.statistics.ui
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-//import androidx.compose.foundation.layout.FlowRowScopeInstance.align
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -24,8 +25,10 @@ import androidx.navigation.NavController
 import com.example.promodoapp.R
 import com.example.promodoapp.navigation.Screen
 import com.example.promodoapp.statistics.viewmodel.ReportViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
-@RequiresApi(Build.VERSION_CODES.O)
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun ReportScreen(
     navController: NavController,
@@ -38,7 +41,17 @@ fun ReportScreen(
     val monthlyFocusDays by viewModel.monthlyFocusDays
     val monthlyFocusSessions by viewModel.monthlyFocusSessions
     val monthlyTotalTime by viewModel.monthlyTotalTime
+    val highlightedDays by viewModel.highlightedDays
     val context = LocalContext.current
+
+    // Hàm điều hướng tháng
+    fun updateMonth(offset: Int) {
+        val sdf = SimpleDateFormat("yyyy/MM", Locale.ENGLISH)
+        val calendar = Calendar.getInstance()
+        calendar.time = sdf.parse(selectedMonth)!!
+        calendar.add(Calendar.MONTH, offset)
+        viewModel.setSelectedMonth(sdf.format(calendar.time))
+    }
 
     Scaffold(
         bottomBar = {
@@ -91,12 +104,12 @@ fun ReportScreen(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Trước",
                     modifier = Modifier.clickable {
-                        viewModel.setSelectedMonth(selectedMonth.minusMonths(1))
+                        updateMonth(-1)
                     }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "${selectedMonth.year}/${selectedMonth.monthValue.toString().padStart(2, '0')}",
+                    text = selectedMonth,
                     fontSize = 20.sp,
                     color = Color.Black
                 )
@@ -105,7 +118,7 @@ fun ReportScreen(
                     imageVector = Icons.Default.ArrowForward,
                     contentDescription = "Sau",
                     modifier = Modifier.clickable {
-                        viewModel.setSelectedMonth(selectedMonth.plusMonths(1))
+                        updateMonth(1)
                     }
                 )
             }
@@ -129,12 +142,15 @@ fun ReportScreen(
             }
 
             // Tính ngày đầu tiên của tháng
-            val firstDayOfMonth = selectedMonth.atDay(1)
-            val daysInMonth = selectedMonth.lengthOfMonth()
-            val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7
+            val calendar = Calendar.getInstance()
+            val sdf = SimpleDateFormat("yyyy/MM", Locale.ENGLISH)
+            calendar.time = sdf.parse(selectedMonth)!!
+            val firstDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
+            val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
+            val firstDayOfWeek = (calendar.get(Calendar.DAY_OF_WEEK) + 5) % 7 // Điều chỉnh để CN là 0
             val offset = (firstDayOfWeek + 6) % 7
 
-            // Vẽ lịch
+            // Vẽ lịch và tô vàng các ngày có phiên học
             Column {
                 (0 until 6).forEach { week ->
                     Row(
@@ -146,9 +162,18 @@ fun ReportScreen(
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
+                                    .background(
+                                        if (highlightedDays.contains(dayIndex) && dayIndex in 1..daysInMonth) Color.Yellow else Color.Transparent,
+                                        shape = CircleShape
+                                    )
                                     .clickable {
                                         if (dayIndex in 1..daysInMonth) {
-                                            viewModel.setSelectedDate("$dayIndex/${selectedMonth.monthValue}")
+                                            viewModel.setSelectedDate("${String.format("%02d", dayIndex)}/${selectedMonth.split("/")[1]}")
+                                            Toast.makeText(
+                                                context,
+                                                "Số lần tập trung: $focusSessions\nThời gian: ${totalTime / 60000} phút",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
                                     },
                                 contentAlignment = Alignment.Center
@@ -191,7 +216,7 @@ fun ReportScreen(
 
             // Tóm tắt tháng
             Text(
-                text = "Tóm tắt tháng ${selectedMonth.monthValue}",
+                text = "Tóm tắt tháng ${selectedMonth.split("/")[1]}",
                 fontSize = 20.sp,
                 color = Color.Black
             )

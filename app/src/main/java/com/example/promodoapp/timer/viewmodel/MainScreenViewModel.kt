@@ -6,7 +6,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.promodoapp.model.Session
+import com.example.promodoapp.model.User
 import com.example.promodoapp.repository.AuthRepository
 import com.example.promodoapp.repository.UserRepository
 import com.example.promodoapp.timer.ui.Mode
@@ -15,10 +17,14 @@ import com.example.promodoapp.utils.NotificationHelper
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MainScreenViewModel : ViewModel() {
     private val authRepository = AuthRepository()
     private val userRepository = UserRepository()
+    val shopViewModel = ShopViewModel(this)
 
     // Trạng thái đồng hồ
     private val _timerState: MutableState<TimerState> = mutableStateOf(TimerState.Idle)
@@ -56,7 +62,7 @@ class MainScreenViewModel : ViewModel() {
     val phaseChangeEvent: MutableState<PhaseChangeEvent?> = _phaseChangeEvent
 
     // Biến để lưu thời gian bắt đầu của phiên hiện tại
-    private var currentSessionStartTime: Long = 0
+    private var currentSessionStartTime: Date? =null
 
     // Job để đếm giờ
     private var timerJob: Job? = null
@@ -82,23 +88,31 @@ class MainScreenViewModel : ViewModel() {
                     val user = userRepository.getUser(currentUser.uid)
                     if (user != null) {
                         _coins.value = user.coins
-                        Log.d("MainViewModel", "Loaded coins from Firestore: ${user.coins}")
-                        _quote.value = user.quote
+                        _quote.value = user.quote // Lấy quote từ Firestore
+                        Log.d("MainViewModel", "Loaded coins: ${user.coins}, quote: ${user.quote}")
                     } else {
-                        // Nếu người dùng chưa có tài liệu, khởi tạo với 0 xu
-                        val newUser = currentUser.copy(coins = 0)
+                        // Khởi tạo người dùng mới với quote mặc định
+                        val newUser = User(
+                            uid = currentUser.uid,
+                            email = currentUser.email ?: "",
+                            coins = 0,
+                            quote = "Stay focused and keep going!"
+                        )
                         userRepository.saveUser(newUser)
                         _coins.value = 0
-                        Log.d("MainViewModel", "Initialized new user with 0 coins")
+                        _quote.value = newUser.quote
+                        Log.d("MainViewModel", "Initialized new user with 0 coins and default quote")
                     }
                 } catch (e: Exception) {
-                    Log.e("MainViewModel", "Failed to load coins: ${e.message}")
-                    _coins.value = 0 // Giá trị mặc định nếu lỗi
+                    Log.e("MainViewModel", "Failed to load user data: ${e.message}")
+                    _coins.value = 0
+                    _quote.value = "Stay focused and keep going!" // Giá trị mặc định nếu lỗi
                 }
             }
         } else {
-            Log.w("MainViewModel", "No user logged in, coins set to 0")
+            Log.w("MainViewModel", "No user logged in, coins and quote set to default")
             _coins.value = 0
+            _quote.value = "Stay focused and keep going!"
         }
     }
 
@@ -106,9 +120,9 @@ class MainScreenViewModel : ViewModel() {
     fun startTimer() {
         if (_timerState.value != TimerState.Running) {
             _timerState.value = TimerState.Running
-            currentSessionStartTime = System.currentTimeMillis()
-            startCountdown()
+            currentSessionStartTime = Date()
         }
+        startCountdown()
     }
 
     // Tạm dừng đếm giờ
@@ -126,33 +140,39 @@ class MainScreenViewModel : ViewModel() {
         _currentVideo.value = VideoType.Study
         _currentTime.value = _workTime.value * 60
         cycleCompleted = false
-        currentSessionStartTime = 0
+        currentSessionStartTime = null
+        _timerState.value = TimerState.Idle
     }
 
     // Hủy đếm giờ
     fun cancelTimer() {
         // Lưu phiên bị hủy
         val currentUser = authRepository.getCurrentUser()
-        if (currentUser != null && currentSessionStartTime > 0) {
-            //Tính thời gian đã học từ lúc ấn start
-            val timeSpentInSeconds = when {
-                _isWorkPhase.value -> _workTime.value * 60 - _currentTime.value
-                else -> _breakTime.value * 60 - _currentTime.value
-            }
-            val timeSpentInMinutes = (timeSpentInSeconds / 60).coerceAtLeast(1)
+        if (currentUser != null && currentSessionStartTime != null) {
+            val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+            val date = dateFormatter.format(currentSessionStartTime)
 
-            val session = Session(
-                userId = currentUser.uid,
-                type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
-                duration = timeSpentInMinutes,
-                completed = false
-            )
-            viewModelScope.launch {
-                try {
-                    userRepository.saveSession(session)
-                    Log.d("MainViewModel", "Saved canceled session: ${session.type}")
-                } catch (e: Exception) {
-                    Log.e("MainViewModel", "Failed to save canceled session: ${e.message}")
+            //Tính thời gian đã học
+            val timeStudiedInSeconds = _workTime.value * 60 - _currentTime.value
+            val timeStudiedInMinutes = timeStudiedInSeconds / 60
+
+            if (timeStudiedInMinutes > 0) {
+                val session = Session(
+                    userId = currentUser.uid,
+                    type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
+                    duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
+                    completed = false,
+                    date = date,
+                    startTime = currentSessionStartTime
+                )
+                viewModelScope.launch {
+                    try {
+                        // Sử dụng collection mới "sessions_new"
+                        userRepository.saveSession(session, "sessions_new")
+                        Log.d("MainViewModel", "Saved canceled session: ${session.type}")
+                    } catch (e: Exception) {
+                        Log.e("MainViewModel", "Failed to save canceled session: ${e.message}")
+                    }
                 }
             }
         }
@@ -163,12 +183,20 @@ class MainScreenViewModel : ViewModel() {
         _currentVideo.value = VideoType.Study
         _currentTime.value = _workTime.value * 60
         cycleCompleted = false
-        currentSessionStartTime = 0
+        currentSessionStartTime = null
     }
 
     // Cập nhật chế độ (Pomodoro hoặc Custom)
     fun setMode(newMode: Mode, newWorkTime: Int? = null, newBreakTime: Int? = null) {
-        updateMode(newMode, newWorkTime, newBreakTime)
+        _mode.value = newMode
+        if (newMode == Mode.Pomodoro) {
+            _workTime.value = 25
+            _breakTime.value = 5
+        } else {
+            _workTime.value = newWorkTime ?: _workTime.value
+            _breakTime.value = newBreakTime ?: _breakTime.value
+        }
+        Log.d("MainViewModel", "Mode updated to: ${_mode.value}, Work time: ${_workTime.value}, Break time: ${_breakTime.value}")
         resetTimer()
     }
 
@@ -176,7 +204,7 @@ class MainScreenViewModel : ViewModel() {
     private fun startCountdown() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            while (_currentTime.value > 0  && _timerState.value == TimerState.Running) {
+            while (_currentTime.value > 0 && _timerState.value == TimerState.Running) {
                 delay(1000)
                 _currentTime.value -= 1
                 if (_currentTime.value == 0) {
@@ -190,16 +218,22 @@ class MainScreenViewModel : ViewModel() {
     private fun switchPhase() {
         // Lưu phiên vừa hoàn thành
         val currentUser = authRepository.getCurrentUser()
-        if (currentUser != null && currentSessionStartTime > 0) {
+        if (currentUser != null && currentSessionStartTime != null && _isWorkPhase.value) {
+            // Chỉ lưu nếu phase hiện tại là học
+            val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+            val date = dateFormatter.format(currentSessionStartTime)
             val session = Session(
                 userId = currentUser.uid,
                 type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
-                duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
-                completed = true
+                duration = _workTime.value,
+                completed = true,
+                date = date,
+                startTime = currentSessionStartTime
             )
             viewModelScope.launch {
                 try {
-                    userRepository.saveSession(session)
+                    // Sử dụng collection mới "sessions_new"
+                    userRepository.saveSession(session, "sessions_new")
                     Log.d("MainViewModel", "Saved session: ${session.type}")
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to save session: ${e.message}")
@@ -207,28 +241,26 @@ class MainScreenViewModel : ViewModel() {
             }
         }
 
-        //Chuyển chế giữa chế độ 
+        // Sau khi lưu, chuyển phase
         _isWorkPhase.value = !_isWorkPhase.value
         if (!_isWorkPhase.value) {
             cycleCompleted = true
-            _currentVideo.value = VideoType.Chill // Chuyển sang video chilling
-            Log.d("MainViewModel", "Switched to Break phase. Video: ${_currentVideo.value}")
-            // Phát tín hiệu chuyển giai đoạn
+            _currentVideo.value = VideoType.Chill
+            //Phát tín hiệu chuyển giai đoạn
             _phaseChangeEvent.value = PhaseChangeEvent.WorkToBreak
         } else {
-            _currentVideo.value = VideoType.Study // Chuyển sang video học bài
-            Log.d("MainViewModel", "Switched to Work phase. Video: ${_currentVideo.value}")
+            _currentVideo.value = VideoType.Study
             if (cycleCompleted) {
-                // Phát tín hiệu chuyển giai đoạn
+                //Phát tín hiệu chuyển giai đoạn
                 _phaseChangeEvent.value = PhaseChangeEvent.BreakToWork
-                // Thưởng xu khi quay lại giai đoạn học sau một chu kỳ
+                //Cộng xu sau 1 chu kì
                 rewardCoins()
                 cycleCompleted = false
             }
         }
         _currentTime.value = if (_isWorkPhase.value) _workTime.value * 60 else _breakTime.value * 60
-        _timerState.value = TimerState.Paused // Dừng lại, đợi người dùng nhấn Play
-        currentSessionStartTime = System.currentTimeMillis()
+        _timerState.value = TimerState.Paused
+        currentSessionStartTime = Date()
     }
 
     // Hàm thưởng xu
@@ -241,12 +273,16 @@ class MainScreenViewModel : ViewModel() {
         if (currentUser != null) {
             viewModelScope.launch {
                 try {
-                    val updatedUser = currentUser.copy(coins = _coins.value)
+                    val updatedUser = User(
+                        uid = currentUser.uid,
+                        email = currentUser.email ?: "",
+                        coins = _coins.value,
+                        quote = _quote.value // Giữ quote hiện tại
+                    )
                     userRepository.updateUser(updatedUser)
-                    Log.d("MainViewModel", "Updated coins to Firestore: ${_coins.value}")
+                    Log.d("MainViewModel", "Updated coins and kept quote: ${_coins.value}, quote: ${_quote.value}")
                 } catch (e: Exception) {
-                    Log.e("MainViewModel", "Failed to update coins to Firestore: ${e.message}")
-                    // TODO: Có thể thêm logic thử lại hoặc thông báo lỗi cho người dùng
+                    Log.e("MainViewModel", "Failed to update coins: ${e.message}")
                 }
             }
         } else {
@@ -284,7 +320,12 @@ class MainScreenViewModel : ViewModel() {
         if (currentUser != null) {
             viewModelScope.launch {
                 try {
-                    val updatedUser = currentUser.copy(coins = _coins.value, quote = newQuote)
+                    val updatedUser = User(
+                        uid = currentUser.uid,
+                        email = currentUser.email ?: "",
+                        coins = _coins.value,
+                        quote = newQuote
+                    )
                     userRepository.updateUser(updatedUser)
                     Log.d("MainViewModel", "Quote updated to Firestore: $newQuote")
                 } catch (e: Exception) {
@@ -293,6 +334,11 @@ class MainScreenViewModel : ViewModel() {
             }
         }
     }
+
+    // Lấy tài nguyên hoạt ảnh từ ShopViewModel
+    fun getCurrentAnimationResource(): Int {
+        return shopViewModel.getCurrentAnimationResource(_currentVideo.value)
+    }
 }
 
 // Enum để biểu thị sự kiện chuyển giai đoạn
@@ -300,6 +346,6 @@ enum class PhaseChangeEvent {
     WorkToBreak, BreakToWork
 }
 
-enum class VideoType{
+enum class VideoType {
     Study, Chill
 }

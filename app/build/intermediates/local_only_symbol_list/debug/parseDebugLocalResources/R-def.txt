@@ -13,9 +13,11 @@ drawable ic_coin
 drawable ic_edit
 drawable ic_launcher_background
 drawable ic_launcher_foreground
+drawable ic_left_arrow
 drawable ic_lock
 drawable ic_pause
 drawable ic_replay
+drawable ic_right_arrow
 drawable ic_settings
 drawable ic_timer
 drawable ic_user

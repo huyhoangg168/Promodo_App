@@ -54,17 +54,20 @@ class UserRepository {
         }
     }
 
-    // Lưu một phiên học vào collection sessions
-    suspend fun saveSession(session: Session) {
+    // Lưu một phiên học vào collection sessions với tham số tùy chỉnh
+    suspend fun saveSession(session: Session, collectionName: String = "sessions") {
         try {
-            Log.d("UserRepository", "Saving session for user: ${session.userId}, type: ${session.type}")
-            val sessionRef = db.collection("sessions").document()
+            val currentUserId = session.userId.ifEmpty { auth.currentUser?.uid ?: throw IllegalStateException("No user logged in") }
+            Log.d("UserRepository", "Saving session for user: $currentUserId, type: ${session.type}, collection: $collectionName")
+            val sessionRef = db.collection("users")
+                .document(currentUserId)
+                .collection(collectionName)
+                .document() // Tạo ID tự động
             sessionRef.set(session).await()
-            Log.d("UserRepository", "Session saved successfully")
+            Log.d("UserRepository", "Session saved successfully for user: $currentUserId")
         } catch (e: Exception) {
             Log.e("UserRepository", "Failed to save session: ${e.message}")
             throw e
         }
     }
-
 }

@@ -1,0 +1,29 @@
+[33mcommit 8ead058494d8ef3be6e0958e0ab4e840b809283c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Hoangg <nguyenhuyhoanggg23@gmail.com>
+Date:   Wed Jun 4 08:46:27 2025 +0700
+
+    Lưu tạm code đã sửa
+
+[33mcommit 4972843fd2041f393904d18d3d2682b6c94f9316[m
+Author: Hoangg <nguyenhuyhoanggg23@gmail.com>
+Date:   Tue Jun 3 18:25:08 2025 +0700
+
+    Cập nhật lưu lịch sử phiên
+
+[33mcommit a02591945c276330ae2dae23db6ace887da5fbf9[m
+Author: Hoangg <nguyenhuyhoanggg23@gmail.com>
+Date:   Mon Jun 2 14:15:31 2025 +0700
+
+    cap nhat v2
+
+[33mcommit ef891b74b201dba458dae998eb4f5bd74b676363[m
+Author: Hoangg <nguyenhuyhoanggg23@gmail.com>
+Date:   Sun Jun 1 21:36:18 2025 +0700
+
+    Remove google-services.json from Git tracking
+
+[33mcommit bf42adb503c46473d291f23a93296bc1f0eb5bf0[m
+Author: Hoangg <nguyenhuyhoanggg23@gmail.com>
+Date:   Sun Jun 1 21:29:17 2025 +0700
+
+    Initial commit

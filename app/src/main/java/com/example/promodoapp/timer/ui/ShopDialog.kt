@@ -1,177 +1,190 @@
 package com.example.promodoapp.timer.ui
 
+import android.util.Log
+import android.view.ViewGroup
+import android.widget.VideoView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import com.example.promodoapp.R
-import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
-import com.example.promodoapp.timer.viewmodel.VideoType
-
-data class AnimationItem(
-    val videoResId: Int,
-    val videoType: VideoType,
-    val price: Int,
-    val name: String
-)
+import com.example.promodoapp.model.ShopItem
+import com.example.promodoapp.timer.viewmodel.ShopViewModel
 
 @Composable
 fun ShopDialog(
-    viewModel: MainScreenViewModel,
+    viewModel: ShopViewModel,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
-    val userCoins by viewModel.coins.collectAsState()
-    val purchasedAnimations by viewModel.purchasedAnimations.collectAsState()
-    var selectedAnimation by remember { mutableStateOf<AnimationItem?>(null) }
+    // Chỉ số của mục hiện tại trong danh sách
+    var currentIndex by remember { mutableStateOf(0) }
+    val items = viewModel.shopItems.value
 
-    // Danh sách các hoạt ảnh có sẵn trong shop
-    val animationItems = listOf(
-        AnimationItem(R.raw.vd_working, VideoType.Study, 50, "Chó & Mèo Học Tập"),
-        AnimationItem(R.raw.vd_chilling2, VideoType.Break, 50, "Chó & Mèo Nghỉ Ngơi"),
-        AnimationItem(R.raw.vd_working2, VideoType.Study, 100, "Thỏ Học Tập"),
-        AnimationItem(R.raw.vd_chilling3, VideoType.Break, 100, "Thỏ Nghỉ Ngơi")
-    )
+    // Đảm bảo không truy cập ngoài danh sách
+    if (items.isEmpty()) return
+
+    val currentItem = items[currentIndex]
+    val context = LocalContext.current
+    var videoViewInstance by remember { mutableStateOf<VideoView?>(null) }
+
+    // Cập nhật video khi mục hiện tại thay đổi
+    LaunchedEffect(currentIndex) {
+        videoViewInstance?.pause()
+        videoViewInstance?.seekTo(0)
+        val videoResId = currentItem.resourceId
+        videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
+        videoViewInstance?.start()
+    }
 
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
-            shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(16.dp),
+            color = Color.White
         ) {
             Column(
                 modifier = Modifier
-                    .background(Color.White)
                     .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Tiêu đề
-                Text(
-                    text = "Cửa Hàng Hoạt Ảnh",
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    textAlign = TextAlign.Center
-                )
-
-                // Số xu của người dùng
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Số Xu: $userCoins",
-                        fontSize = 16.sp,
+                        text = "Hoạt Ảnh Tâp Trung",
+                        fontSize = 20.sp,
                         color = Color.Black
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_coin),
-                        contentDescription = "xu",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                // Danh sách hoạt ảnh
-                LazyColumn(
-                    modifier = Modifier
-                        .heightIn(max = 300.dp)
-                        .fillMaxWidth()
-                ) {
-                    itemsIndexed(animationItems) { _, item ->
-                        val isPurchased = purchasedAnimations.contains(item.videoResId)
-                        val isSelected = viewModel.currentVideo.value == item.videoType && isPurchased
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .background(
-                                    if (isSelected) Color(0xFFE0E0E0) else Color.Transparent,
-                                    shape = RoundedCornerShape(8.dp)
-                                )
-                                .clickable {
-                                    if (isPurchased) {
-                                        // Chọn hoạt ảnh nếu đã mua
-                                        viewModel.selectAnimation(item.videoResId, item.videoType)
-                                    } else {
-                                        // Mua nếu chưa sở hữu
-                                        if (userCoins >= item.price) {
-                                            viewModel.purchaseAnimation(item.videoResId)
-                                            viewModel.deductCoins(item.price)
-                                            viewModel.selectAnimation(item.videoResId, item.videoType)
-                                        } else {
-                                            // Hiển thị thông báo không đủ xu
-                                            android.widget.Toast.makeText(
-                                                context,
-                                                "Không đủ xu để mua hoạt ảnh này!",
-                                                android.widget.Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                }
-                                .padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = item.name,
-                                fontSize = 16.sp,
-                                color = Color.Black
-                            )
-
-                            if (isPurchased) {
-                                Text(
-                                    text = if (isSelected) "Đang Sử Dụng" else "Chọn",
-                                    fontSize = 14.sp,
-                                    color = if (isSelected) Color(0xFF4CAF50) else Color(0xFF2196F3)
-                                )
-                            } else {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "${item.price}",
-                                        fontSize = 14.sp,
-                                        color = Color.Black
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_coin),
-                                        contentDescription = "xu",
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
-                            }
-                        }
+                    if (!currentItem.isPurchased) { // Chỉ hiển thị biểu tượng khóa nếu chưa mua
+                        Icon(
+                            imageVector = Icons.Default.Lock,
+                            contentDescription = "Lock",
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
 
-                // Nút đóng
-                Button(
-                    onClick = { onDismiss() },
+                // Phần preview hoạt ảnh
+                AndroidView(
+                    factory = {
+                        VideoView(it).apply {
+                            layoutParams = ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT
+                            )
+                            val videoResId = currentItem.resourceId
+                            setVideoPath("android.resource://${context.packageName}/$videoResId")
+                            setOnPreparedListener { mp ->
+                                mp.isLooping = true
+                                seekTo(1)
+                                Log.d("ShopDialog", "Video prepared to: $videoResId")
+                            }
+                            videoViewInstance = this
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp)
+                        .height(150.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
+
+                // Các mũi tên điều hướng
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Đóng")
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_left_arrow),
+                        contentDescription = "Previous",
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clickable {
+                                if (currentIndex > 0) {
+                                    currentIndex--
+                                }
+                            },
+                        tint = if (currentIndex > 0) Color.Black else Color.Gray
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_right_arrow),
+                        contentDescription = "Next",
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clickable {
+                                if (currentIndex < items.size - 1) {
+                                    currentIndex++
+                                }
+                            },
+                        tint = if (currentIndex < items.size - 1) Color.Black else Color.Gray
+                    )
+                }
+
+                // Nút mua hoặc chọn
+                if (!currentItem.isPurchased) {
+                    Row(
+                        modifier = Modifier
+                            .background(Color(0xFF2196F3), CircleShape)
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "${currentItem.price}",
+                            fontSize = 16.sp,
+                            color = Color.White
+                        )
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_coin),
+                            contentDescription = "Coin",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = { viewModel.purchaseItem(currentItem) },
+                        enabled = viewModel.coins.value >= currentItem.price,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Mua")
+                    }
+                } else {
+                    Button(
+                        onClick = { viewModel.selectItem(currentItem) },
+                        enabled = !currentItem.isSelected,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (currentItem.isSelected) Color.Gray else Color.Green
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(if (currentItem.isSelected) "Đang Chọn" else "Chọn")
+                    }
                 }
             }
         }

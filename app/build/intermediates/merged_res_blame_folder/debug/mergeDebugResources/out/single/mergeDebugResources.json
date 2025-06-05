@@ -96,6 +96,10 @@
         "source": "com.example.promodoapp-main-68:/drawable/ic_pause.xml"
     },
     {
+        "merged": "com.example.promodoapp-debug-66:/drawable_ic_left_arrow.xml.flat",
+        "source": "com.example.promodoapp-main-68:/drawable/ic_left_arrow.xml"
+    },
+    {
         "merged": "com.example.promodoapp-debug-66:/xml_data_extraction_rules.xml.flat",
         "source": "com.example.promodoapp-main-68:/xml/data_extraction_rules.xml"
     },
@@ -110,6 +114,10 @@
     {
         "merged": "com.example.promodoapp-debug-66:/raw_coin_recieve.mp3.flat",
         "source": "com.example.promodoapp-main-68:/raw/coin_recieve.mp3"
+    },
+    {
+        "merged": "com.example.promodoapp-debug-66:/drawable_ic_right_arrow.xml.flat",
+        "source": "com.example.promodoapp-main-68:/drawable/ic_right_arrow.xml"
     },
     {
         "merged": "com.example.promodoapp-debug-66:/mipmap-xhdpi_ic_launcher_round.webp.flat",

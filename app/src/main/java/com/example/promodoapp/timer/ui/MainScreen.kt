@@ -43,6 +43,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.PhaseChangeEvent
+import com.example.promodoapp.timer.viewmodel.ShopViewModel
 import com.example.promodoapp.timer.viewmodel.VideoType
 import com.example.promodoapp.utils.NotificationHelper
 import com.example.promodoapp.utils.SoundManager
@@ -56,8 +57,10 @@ fun Demo(){
 @Composable
 fun MainScreen(
     navController: NavController,
-    viewModel: MainScreenViewModel = viewModel()
+    viewModel: MainScreenViewModel = viewModel(),
+    //shopViewModel: ShopViewModel = viewModel()
 ) {
+    val shopViewModel = viewModel.shopViewModel
     // Biến để lưu trữ VideoView
     val context = LocalContext.current
     var videoViewInstance by remember { mutableStateOf<VideoView?>(null) }
@@ -71,6 +74,8 @@ fun MainScreen(
     var showReplayConfirmDialog by remember { mutableStateOf(false) }
     // Hiển thị dialog xác nhận khi nhấn Cancel
     var showCancelConfirmDialog by remember { mutableStateOf(false) }
+    // Hiển thị dialog Shop
+    var showShopDialog by remember { mutableStateOf(false) }
     //Biến để lưu số coin trước khi được cộng
     var previousCoins by remember { mutableStateOf(viewModel.coins.value) }
     // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13 trở lên
@@ -98,16 +103,30 @@ fun MainScreen(
     }
 
     // Cập nhật video khi chuyển giai đoạn
-    LaunchedEffect(viewModel.currentVideo.value) {
+//    LaunchedEffect(viewModel.currentVideo.value) {
+//        Log.d("MainScreen", "Current video changed to: ${viewModel.currentVideo.value}")
+//        videoViewInstance?.pause()
+//        videoViewInstance?.seekTo(0)
+//
+//        val videoResId = if (viewModel.currentVideo.value == VideoType.Study) {
+//            R.raw.vd_working
+//        } else {
+//            R.raw.vd_chilling2
+//        }
+//        videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
+//
+//        if (viewModel.timerState.value == TimerState.Running) {
+//            videoViewInstance?.start()
+//        }
+//    }
+
+    // Cập nhật video khi video type hoặc hoạt ảnh được chọn thay đổi
+    LaunchedEffect(viewModel.currentVideo.value, shopViewModel.animationSelectionChanged.value) {
         Log.d("MainScreen", "Current video changed to: ${viewModel.currentVideo.value}")
         videoViewInstance?.pause()
         videoViewInstance?.seekTo(0)
 
-        val videoResId = if (viewModel.currentVideo.value == VideoType.Study) {
-            R.raw.vd_working
-        } else {
-            R.raw.vd_chilling2
-        }
+        val videoResId = viewModel.getCurrentAnimationResource()
         videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
 
         if (viewModel.timerState.value == TimerState.Running) {
@@ -199,6 +218,7 @@ fun MainScreen(
                     modifier = Modifier
                         .background(Color.LightGray, shape = RoundedCornerShape(50))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .clickable { showShopDialog = true }
                 ) {
                     Row(
                         modifier = Modifier.align(Alignment.Center),
@@ -284,11 +304,7 @@ fun MainScreen(
                                 ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.WRAP_CONTENT
                             )
-                            val videoResId = if (viewModel.currentVideo.value == VideoType.Study) {
-                                R.raw.vd_working
-                            } else {
-                                R.raw.vd_chilling
-                            }
+                            val videoResId = viewModel.getCurrentAnimationResource()
                             setVideoPath("android.resource://${context.packageName}/$videoResId")
                             setOnPreparedListener { mp ->
                                 mp.isLooping = true
@@ -463,6 +479,14 @@ fun MainScreen(
             onDismiss = {
                 showCancelConfirmDialog = false
             }
+        )
+    }
+
+    // Hiển thị ShopDialog khi người dùng bấm vào khu vực số xu
+    if (showShopDialog) {
+        ShopDialog(
+            viewModel = shopViewModel,
+            onDismiss = { showShopDialog = false }
         )
     }
 }
