@@ -75,9 +75,10 @@ fun ShopDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Hoạt Ảnh Tâp Trung",
+                        text = "Store",
                         fontSize = 20.sp,
                         color = Color.Black
+
                     )
                     if (!currentItem.isPurchased) { // Chỉ hiển thị biểu tượng khóa nếu chưa mua
                         Icon(
@@ -88,29 +89,6 @@ fun ShopDialog(
                     }
                 }
 
-                // Phần preview hoạt ảnh
-                AndroidView(
-                    factory = {
-                        VideoView(it).apply {
-                            layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.WRAP_CONTENT
-                            )
-                            val videoResId = currentItem.resourceId
-                            setVideoPath("android.resource://${context.packageName}/$videoResId")
-                            setOnPreparedListener { mp ->
-                                mp.isLooping = true
-                                seekTo(1)
-                                Log.d("ShopDialog", "Video prepared to: $videoResId")
-                            }
-                            videoViewInstance = this
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
 
                 // Các mũi tên điều hướng
                 Row(
@@ -120,11 +98,12 @@ fun ShopDialog(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    //Nút trái
                     Icon(
                         painter = painterResource(id = R.drawable.ic_left_arrow),
                         contentDescription = "Previous",
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(35.dp)
                             .clickable {
                                 if (currentIndex > 0) {
                                     currentIndex--
@@ -132,11 +111,37 @@ fun ShopDialog(
                             },
                         tint = if (currentIndex > 0) Color.Black else Color.Gray
                     )
+
+                    //Preview hoạt ảnh
+                    AndroidView(
+                        factory = {
+                            VideoView(it).apply {
+                                layoutParams = ViewGroup.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                                )
+                                val videoResId = currentItem.resourceId
+                                setVideoPath("android.resource://${context.packageName}/$videoResId")
+                                setOnPreparedListener { mp ->
+                                    mp.isLooping = true
+                                    seekTo(1)
+                                    Log.d("ShopDialog", "Video prepared to: $videoResId")
+                                }
+                                videoViewInstance = this
+                            }
+                        },
+                        modifier = Modifier
+                            .width(210.dp)
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                    )
+
+                    //Nút phải
                     Icon(
                         painter = painterResource(id = R.drawable.ic_right_arrow),
                         contentDescription = "Next",
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(35.dp)
                             .clickable {
                                 if (currentIndex < items.size - 1) {
                                     currentIndex++
@@ -172,7 +177,7 @@ fun ShopDialog(
                         enabled = viewModel.coins.value >= currentItem.price,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Mua")
+                        Text("Buy")
                     }
                 } else {
                     Button(
@@ -183,7 +188,7 @@ fun ShopDialog(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(if (currentItem.isSelected) "Đang Chọn" else "Chọn")
+                        Text(if (currentItem.isSelected) "Using" else "Use")
                     }
                 }
             }

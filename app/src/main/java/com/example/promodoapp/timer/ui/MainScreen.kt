@@ -102,24 +102,6 @@ fun MainScreen(
         }
     }
 
-    // Cập nhật video khi chuyển giai đoạn
-//    LaunchedEffect(viewModel.currentVideo.value) {
-//        Log.d("MainScreen", "Current video changed to: ${viewModel.currentVideo.value}")
-//        videoViewInstance?.pause()
-//        videoViewInstance?.seekTo(0)
-//
-//        val videoResId = if (viewModel.currentVideo.value == VideoType.Study) {
-//            R.raw.vd_working
-//        } else {
-//            R.raw.vd_chilling2
-//        }
-//        videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
-//
-//        if (viewModel.timerState.value == TimerState.Running) {
-//            videoViewInstance?.start()
-//        }
-//    }
-
     // Cập nhật video khi video type hoặc hoạt ảnh được chọn thay đổi
     LaunchedEffect(viewModel.currentVideo.value, shopViewModel.animationSelectionChanged.value) {
         Log.d("MainScreen", "Current video changed to: ${viewModel.currentVideo.value}")
