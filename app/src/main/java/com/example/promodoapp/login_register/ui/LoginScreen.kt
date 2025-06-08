@@ -133,9 +133,9 @@ fun LoginScreen(
             onClick = {
                 Log.d("LoginScreen", "Sign In button clicked")
                 if (email.isBlank() || password.isBlank()) {
-                    viewModel.loginState.value = LoginState.Error("Email and password cannot be empty")
+                    viewModel.loginState.value = LoginState.Error("Email và mật khẩu không được phép để trống")
                 } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    viewModel.loginState.value = LoginState.Error("Invalid email format")
+                    viewModel.loginState.value = LoginState.Error("Sai định dạng email")
                 } else {
                     viewModel.login(email, password)
                 }

@@ -60,7 +60,7 @@ fun ReportScreen(
                     icon = { Icon(painterResource(id = R.drawable.ic_timer), contentDescription = "Timer") },
                     label = { Text("Timer") },
                     selected = false,
-                    onClick = { navController.navigate(Screen.Main.route) }
+                    onClick = {navController.popBackStack(Screen.Main.route, inclusive = false) }
                 )
                 NavigationBarItem(
                     icon = { Icon(painterResource(id = R.drawable.ic_calendar), contentDescription = "Statistics") },
@@ -86,7 +86,7 @@ fun ReportScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            // Tiêu đề
+            //Tiêu đề
             Text(
                 text = "Báo cáo",
                 style = MaterialTheme.typography.headlineMedium,

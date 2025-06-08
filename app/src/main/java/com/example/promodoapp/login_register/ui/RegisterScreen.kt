@@ -166,11 +166,11 @@ fun RegisterScreen(
         Button(
             onClick = {
                 if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
-                    viewModel.registerState.value = RegisterState.Error("All fields must be filled")
+                    viewModel.registerState.value = RegisterState.Error("Tất cả các chỗ trống phải được điền")
                 } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                    viewModel.registerState.value = RegisterState.Error("Invalid email format")
+                    viewModel.registerState.value = RegisterState.Error("Sai định dạng email")
                 } else if (password != confirmPassword) {
-                    viewModel.registerState.value = RegisterState.Error("Passwords do not match")
+                    viewModel.registerState.value = RegisterState.Error("Mật khẩu không khớp")
                 } else {
                     viewModel.register(email, password, confirmPassword)
                 }

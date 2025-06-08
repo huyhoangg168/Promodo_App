@@ -68,6 +68,18 @@ class ShopViewModel(
                 name = "Break Animation 1",
                 price = 50,
                 resourceId = R.raw.vd_chilling
+            ),
+            ShopItem(
+                id = "work_animation_2",
+                name = "Work Animation 2",
+                price = 100,
+                resourceId = R.raw.vd_working3
+            ),
+            ShopItem(
+                id = "break_animation_2",
+                name = "Break Animation 2",
+                price = 100,
+                resourceId = R.raw.vd_chilling3
             )
         )
     }
@@ -75,6 +87,11 @@ class ShopViewModel(
     private fun loadUserData() {
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null) {
+//            // Đảm bảo danh sách shopItem đã được tạo
+//            if (_shopItems.value.isEmpty()) {
+//                loadShopItems()
+//            }
+
             viewModelScope.launch {
                 try {
                     val userData = userRepository.getUser(currentUser.uid)

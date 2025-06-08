@@ -9,6 +9,7 @@ color teal_700
 color white
 drawable ic_calendar
 drawable ic_cancel
+drawable ic_chart
 drawable ic_coin
 drawable ic_edit
 drawable ic_launcher_background
@@ -29,8 +30,10 @@ raw coin_recieve
 raw notify_end
 raw vd_chilling
 raw vd_chilling2
+raw vd_chilling3
 raw vd_working
 raw vd_working2
+raw vd_working3
 string app_name
 string gcm_defaultSenderId
 string google_api_key

@@ -128,6 +128,7 @@ int drawable ic_call_answer_video_low 0x7f04001b
 int drawable ic_call_decline 0x7f04001c
 int drawable ic_call_decline_low 0x7f04001d
 int drawable ic_cancel 0x7f04001e
+int drawable ic_chart 0x7f04003d
 int drawable ic_coin 0x7f04001f
 int drawable ic_edit 0x7f040020
 int drawable ic_launcher_background 0x7f040021
@@ -285,8 +286,10 @@ int raw firebase_common_keep 0x7f090001
 int raw notify_end 0x7f090002
 int raw vd_chilling 0x7f090003
 int raw vd_chilling2 0x7f090004
+int raw vd_chilling3 0x7f090007
 int raw vd_working 0x7f090005
 int raw vd_working2 0x7f090006
+int raw vd_working3 0x7f090008
 int string android_credentials_TYPE_PASSWORD_CREDENTIAL 0x7f0a0000
 int string androidx_credentials_TYPE_PUBLIC_KEY_CREDENTIAL 0x7f0a0001
 int string androidx_startup 0x7f0a0002

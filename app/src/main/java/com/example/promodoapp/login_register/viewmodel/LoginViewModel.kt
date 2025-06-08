@@ -33,9 +33,12 @@ class LoginViewModel : ViewModel() {
                     else -> {
                         val errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
                         Log.e("LoginViewModel", "Login failed: $errorMessage")
-                        when(errorMessage){
+                        when{
+                            errorMessage.contains("The supplied auth credential", ignoreCase = true) -> {
+                                LoginState.Error("Email hoặc mật khẩu không đúng. Vui lòng thử lại.")
+                            }
+                            else -> LoginState.Error(errorMessage)
                         }
-                        LoginState.Error(errorMessage)
                     }
                 }
             } catch (e: Exception) {

@@ -1,5 +1,6 @@
 package com.example.promodoapp.navigation
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
@@ -13,44 +14,23 @@ import com.google.accompanist.navigation.animation.composable
 import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.composable
 import com.example.promodoapp.statistics.ui.ReportScreen
+import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 
+@SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-/*fun NavGraph() {
-    val navController = rememberNavController()
-    val authRepository = AuthRepository() // Khởi tạo thủ công
-
-    // Kiểm tra trạng thái đăng nhập
-    val startDestination = if (authRepository.getCurrentUser() != null) {
-        // TODO: Thay "main" bằng route của màn hình chính sau khi đăng nhập
-        Screen.Login.route // Tạm thời để là Login, bạn sẽ cần thêm màn hình chính
-    } else {
-        Screen.Login.route
-    }
-
-    NavHost(navController = navController, startDestination = startDestination) {
-        AnimatedNavHost(
-            navController = navController,
-            startDestination = "home",
-            enterTransition = { slideInHorizontally { it } },) {
-            composable(Screen.Login.route) {
-                LoginScreen(navController = navController)
-            }
-            composable(Screen.Register.route) {
-                RegisterScreen(navController = navController)
-            }
-            // TODO: Thêm các màn hình khác như MainScreen sau khi đăng nhập thành công
-            composable(Screen.Main.route){
-                MainScreen(navController = navController)
-            }
-        }
-    }
-}*/
-
 fun NavGraph() {
+    val bottomBarScreens = listOf(
+        Screen.Main.route,
+        Screen.Statistics.route,
+        Screen.Settings.route
+    )
+
     val navController = rememberNavController()
     val authRepository = AuthRepository()
 
@@ -63,39 +43,73 @@ fun NavGraph() {
     AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
-        enterTransition = { slideInHorizontally { it } },
-        exitTransition = { slideOutHorizontally { -it } },
+        enterTransition = {
+            val (enter, _) = getSlideDirection(
+                initialState.destination.route,
+                targetState.destination.route,
+                bottomBarScreens
+            )
+            enter
+        },
+        exitTransition = {
+            val (_, exit) = getSlideDirection(
+                initialState.destination.route,
+                targetState.destination.route,
+                bottomBarScreens
+            )
+            exit
+        },
         popEnterTransition = { slideInHorizontally { -it } },
         popExitTransition = { slideOutHorizontally { it } }
-//        enterTransition = {
-//            scaleIn(
-//                initialScale = 0.9f,
-//                animationSpec = tween(300, easing = FastOutSlowInEasing)
-//            ) + fadeIn(animationSpec = tween(300))
-//        },
-//        exitTransition = {
-//            scaleOut(
-//                targetScale = 1.1f,
-//                animationSpec = tween(200, easing = FastOutSlowInEasing)
-//            ) + fadeOut(animationSpec = tween(200))
-//        },
-//        popEnterTransition = {
-//            scaleIn(
-//                initialScale = 0.9f,
-//                animationSpec = tween(300, easing = FastOutSlowInEasing)
-//            ) + fadeIn(animationSpec = tween(300))
-//        },
-//        popExitTransition = {
-//            scaleOut(
-//                targetScale = 1.1f,
-//                animationSpec = tween(200, easing = FastOutSlowInEasing)
-//            ) + fadeOut(animationSpec = tween(200))
-//        }
     ) {
         composable(Screen.Login.route){ LoginScreen(navController) }
         composable(Screen.Register.route){ RegisterScreen(navController) }
-        composable(Screen.Main.route){ MainScreen(navController) }
-        composable(Screen.Statistics.route){ ReportScreen(navController) }
+        composable(Screen.Main.route){
+            val currentUser = authRepository.getCurrentUser()
+            val userId = currentUser?.uid ?: "guest"
 
+            val navBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(Screen.Main.route)
+            }
+
+            val mainViewModel: MainScreenViewModel = viewModel(
+                viewModelStoreOwner = navBackStackEntry,
+                key = userId
+            )
+            MainScreen(navController, viewModel = mainViewModel)
+        }
+        composable(Screen.Statistics.route){ ReportScreen(navController) }
     }
 }
+
+fun getSlideDirection(
+    fromRoute: String?,
+    toRoute: String?,
+    screenOrder: List<String>
+): Pair<EnterTransition, ExitTransition> {
+    val fromIndex = screenOrder.indexOf(fromRoute)
+    val toIndex = screenOrder.indexOf(toRoute)
+
+    return if (fromIndex != -1 && toIndex != -1) {
+        if (toIndex > fromIndex) {
+            // Điều hướng sang phải (forward)
+            Pair(
+                slideInHorizontally(tween(300)) { it },
+                slideOutHorizontally(tween(300)) { -it }
+            )
+        } else {
+            // Điều hướng sang trái (backward)
+            Pair(
+                slideInHorizontally(tween(300)) { -it },
+                slideOutHorizontally(tween(300)) { it }
+            )
+        }
+    } else {
+        // Mặc định
+        Pair(
+            slideInHorizontally(tween(300)) { it },
+            slideOutHorizontally(tween(300)) { -it }
+        )
+    }
+}
+

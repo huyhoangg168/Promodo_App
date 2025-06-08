@@ -48,17 +48,10 @@ import com.example.promodoapp.timer.viewmodel.VideoType
 import com.example.promodoapp.utils.NotificationHelper
 import com.example.promodoapp.utils.SoundManager
 
-@Preview
-@Composable
-fun Demo(){
-    MainScreen(navController = rememberNavController())
-}
-
 @Composable
 fun MainScreen(
     navController: NavController,
-    viewModel: MainScreenViewModel = viewModel(),
-    //shopViewModel: ShopViewModel = viewModel()
+    viewModel: MainScreenViewModel,
 ) {
     val shopViewModel = viewModel.shopViewModel
     // Biến để lưu trữ VideoView
@@ -139,6 +132,21 @@ fun MainScreen(
             }
             // Reset sự kiện sau khi xử lý
             viewModel.resetPhaseChangeEvent()
+        }
+    }
+
+    //Load hoạt ảnh đã lưu từ trước đó
+    LaunchedEffect(shopViewModel.user.value) {
+        val videoResId = viewModel.getCurrentAnimationResource()
+        videoViewInstance?.pause()
+        videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
+        videoViewInstance?.seekTo(1)
+    }
+
+    //Chạy tếp video khi chuyển màn
+    LaunchedEffect(videoViewInstance) {
+        if (viewModel.timerState.value == TimerState.Running) {
+            videoViewInstance?.start()
         }
     }
 
@@ -299,7 +307,7 @@ fun MainScreen(
                     modifier = Modifier
                         .width(270.dp)
                         .height(200.dp)
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(20))
                 )
 
                 // Thời gian học và nghỉ
