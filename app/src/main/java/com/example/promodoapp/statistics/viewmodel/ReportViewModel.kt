@@ -9,6 +9,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.tasks.await
 
 class ReportViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
@@ -73,89 +74,86 @@ class ReportViewModel : ViewModel() {
             val year = _selectedMonth.value.split("/")[0]
             val fullDate = "$date/$year"
 
-            db.collection("users").document(userId)
-                .collection("sessions_new")
-                .whereEqualTo("completed", true)
-                .whereEqualTo("date", fullDate)
-                .get()
-                .addOnSuccessListener { documents ->
-                    println("loadDailyStats: Found ${documents.size()} documents for date $fullDate")
-                    for (doc in documents) {
-                        println("Document: date=${doc.getString("date")}, duration=${doc.getLong("duration")}")
-                    }
-                    _focusSessions.value = documents.size()
-                    _totalTime.value = documents.mapNotNull { it.getLong("duration")?.times(60 * 1000) }.sum()
-                }
-                .addOnFailureListener { exception ->
-                    println("Error loading daily stats: ${exception.message}")
-                }
+            try {
+                val documents = db.collection("users").document(userId)
+                    .collection("sessions_new")
+                    .whereEqualTo("completed", true)
+                    .whereEqualTo("date", fullDate)
+                    .get()
+                    .await()
+
+                _focusSessions.value = documents.size()
+                _totalTime.value =
+                    documents.mapNotNull { it.getLong("duration")?.times(60 * 1000) }.sum()
+            } catch (exception: Exception) {
+                println("Error loading daily stats: ${exception.message}")
+            }
         }
     }
 
-    // Tải dữ liệu thống kê hàng tháng
     private fun loadMonthlyStats() {
         viewModelScope.launch {
             val yearMonth = _selectedMonth.value.split("/")
             val year = yearMonth[0]
             val month = yearMonth[1]
 
-            db.collection("users").document(userId)
-                .collection("sessions_new")
-                .whereEqualTo("completed", true)
-                .get()
-                .addOnSuccessListener { documents ->
-                    val daysSet = mutableSetOf<String>()
-                    var sessionsCount = 0
-                    var totalDuration = 0L
+            try {
+                val documents = db.collection("users").document(userId)
+                    .collection("sessions_new")
+                    .whereEqualTo("completed", true)
+                    .get()
+                    .await()
 
-                    for (doc in documents) {
-                        val docDate = doc.getString("date") ?: continue
-                        val docYearMonth = docDate.split("/").let { "${it[2]}/${it[1]}" }
-                        if (docYearMonth == "$year/$month") {
-                            daysSet.add(docDate)
-                            sessionsCount++
-                            totalDuration += (doc.getLong("duration") ?: 0L) * 60 * 1000
-                        }
+                val daysSet = mutableSetOf<String>()
+                var sessionsCount = 0
+                var totalDuration = 0L
+
+                for (doc in documents) {
+                    val docDate = doc.getString("date") ?: continue
+                    val docYearMonth = docDate.split("/").let { "${it[2]}/${it[1]}" }
+                    if (docYearMonth == "$year/$month") {
+                        daysSet.add(docDate)
+                        sessionsCount++
+                        totalDuration += (doc.getLong("duration") ?: 0L) * 60 * 1000
                     }
+                }
 
-                    _monthlyFocusDays.value = daysSet.size
-                    _monthlyFocusSessions.value = sessionsCount
-                    _monthlyTotalTime.value = totalDuration
-                    println("loadMonthlyStats: days=${daysSet.size}, sessions=$sessionsCount, totalTime=$totalDuration")
-                }
-                .addOnFailureListener { exception ->
-                    println("Error loading monthly stats: ${exception.message}")
-                }
+                _monthlyFocusDays.value = daysSet.size
+                _monthlyFocusSessions.value = sessionsCount
+                _monthlyTotalTime.value = totalDuration
+            } catch (exception: Exception) {
+                println("Error loading monthly stats: ${exception.message}")
+            }
         }
     }
 
-    // Tải danh sách ngày có phiên học
     private fun loadHighlightedDays() {
         viewModelScope.launch {
             val yearMonth = _selectedMonth.value.split("/")
             val year = yearMonth[0]
             val month = yearMonth[1]
 
-            db.collection("users").document(userId)
-                .collection("sessions_new")
-                .whereEqualTo("completed", true)
-                .get()
-                .addOnSuccessListener { documents ->
-                    val days = documents.mapNotNull { doc ->
-                        val docDate = doc.getString("date") ?: return@mapNotNull null
-                        val docYearMonth = docDate.split("/").let { "${it[2]}/${it[1]}" }
-                        if (docYearMonth == "$year/$month") {
-                            docDate.split("/")[0].toIntOrNull()
-                        } else {
-                            null
-                        }
-                    }.distinct()
-                    _highlightedDays.value = days
-                    println("loadHighlightedDays: days=$days")
-                }
-                .addOnFailureListener { exception ->
-                    println("Error loading highlighted days: ${exception.message}")
-                }
+            try {
+                val documents = db.collection("users").document(userId)
+                    .collection("sessions_new")
+                    .whereEqualTo("completed", true)
+                    .get()
+                    .await()
+
+                val days = documents.mapNotNull { doc ->
+                    val docDate = doc.getString("date") ?: return@mapNotNull null
+                    val docYearMonth = docDate.split("/").let { "${it[2]}/${it[1]}" }
+                    if (docYearMonth == "$year/$month") {
+                        docDate.split("/")[0].toIntOrNull()
+                    } else {
+                        null
+                    }
+                }.distinct()
+
+                _highlightedDays.value = days
+            } catch (exception: Exception) {
+                println("Error loading highlighted days: ${exception.message}")
+            }
         }
     }
 }

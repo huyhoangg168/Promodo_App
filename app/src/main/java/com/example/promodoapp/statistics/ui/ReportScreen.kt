@@ -1,4 +1,4 @@
-package com.example.promodoapp.statistics.ui
+package com.example.promodoapp.statisticsx.ui
 
 import android.os.Build
 import android.widget.Toast
@@ -73,7 +73,7 @@ fun ReportScreen(
                     label = { Text("Settings") },
                     selected = false,
                     onClick = {
-                        //Toast.makeText(context,"Coming soon", Toast.LENGTH_LONG).show()
+                       navController.navigate(Screen.Settings.route)
                     }
                 )
             }

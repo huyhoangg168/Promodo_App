@@ -182,7 +182,7 @@ fun MainScreen(
                     label = { Text("Settings") },
                     selected = false,
                     onClick = {
-                        Toast.makeText(context, "Coming soon", Toast.LENGTH_LONG).show()
+                        navController.navigate(Screen.Settings.route)
                     }
                 )
             }
@@ -208,7 +208,6 @@ fun MainScreen(
                     modifier = Modifier
                         .background(Color.LightGray, shape = RoundedCornerShape(50))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
-                        .clickable { showShopDialog = true }
                 ) {
                     Row(
                         modifier = Modifier.align(Alignment.Center),
@@ -412,14 +411,6 @@ fun MainScreen(
                     }
                 }
             }
-            Button(
-                onClick = {
-                    viewModel.logout()
-                    navController.navigate(Screen.Login.route)
-                }
-            ) {
-                Text("Logout", fontSize = 16.sp)
-            }
         }
     }
 
@@ -469,14 +460,6 @@ fun MainScreen(
             onDismiss = {
                 showCancelConfirmDialog = false
             }
-        )
-    }
-
-    // Hiển thị ShopDialog khi người dùng bấm vào khu vực số xu
-    if (showShopDialog) {
-        ShopDialog(
-            viewModel = shopViewModel,
-            onDismiss = { showShopDialog = false }
         )
     }
 }

@@ -12,8 +12,8 @@
 11-->D:\PromodoApp\app\src\main\AndroidManifest.xml:5:5-77
 11-->D:\PromodoApp\app\src\main\AndroidManifest.xml:5:22-74
 12    <uses-permission android:name="android.permission.INTERNET" />
-12-->[com.google.firebase:firebase-auth:23.2.0] C:\Users\nguye\.gradle\caches\8.10.2\transforms\27f679b0f8ef4555ead7db5951b7d19c\transformed\firebase-auth-23.2.0\AndroidManifest.xml:25:5-67
-12-->[com.google.firebase:firebase-auth:23.2.0] C:\Users\nguye\.gradle\caches\8.10.2\transforms\27f679b0f8ef4555ead7db5951b7d19c\transformed\firebase-auth-23.2.0\AndroidManifest.xml:25:22-64
+12-->D:\PromodoApp\app\src\main\AndroidManifest.xml:6:5-67
+12-->D:\PromodoApp\app\src\main\AndroidManifest.xml:6:22-64
 13    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 13-->[com.google.firebase:firebase-auth:23.2.0] C:\Users\nguye\.gradle\caches\8.10.2\transforms\27f679b0f8ef4555ead7db5951b7d19c\transformed\firebase-auth-23.2.0\AndroidManifest.xml:26:5-79
 13-->[com.google.firebase:firebase-auth:23.2.0] C:\Users\nguye\.gradle\caches\8.10.2\transforms\27f679b0f8ef4555ead7db5951b7d19c\transformed\firebase-auth-23.2.0\AndroidManifest.xml:26:22-76
@@ -33,57 +33,57 @@
 20-->[androidx.core:core:1.16.0] C:\Users\nguye\.gradle\caches\8.10.2\transforms\299166d3b52486ee77aa13178ad5807f\transformed\core-1.16.0\AndroidManifest.xml:26:22-94
 21
 22    <application
-22-->D:\PromodoApp\app\src\main\AndroidManifest.xml:7:5-33:19
+22-->D:\PromodoApp\app\src\main\AndroidManifest.xml:9:5-35:19
 23        android:allowBackup="true"
-23-->D:\PromodoApp\app\src\main\AndroidManifest.xml:8:9-35
+23-->D:\PromodoApp\app\src\main\AndroidManifest.xml:10:9-35
 24        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 24-->[androidx.core:core:1.16.0] C:\Users\nguye\.gradle\caches\8.10.2\transforms\299166d3b52486ee77aa13178ad5807f\transformed\core-1.16.0\AndroidManifest.xml:28:18-86
 25        android:dataExtractionRules="@xml/data_extraction_rules"
-25-->D:\PromodoApp\app\src\main\AndroidManifest.xml:9:9-65
+25-->D:\PromodoApp\app\src\main\AndroidManifest.xml:11:9-65
 26        android:debuggable="true"
 27        android:extractNativeLibs="false"
 28        android:fullBackupContent="@xml/backup_rules"
-28-->D:\PromodoApp\app\src\main\AndroidManifest.xml:10:9-54
+28-->D:\PromodoApp\app\src\main\AndroidManifest.xml:12:9-54
 29        android:icon="@mipmap/ic_launcher"
-29-->D:\PromodoApp\app\src\main\AndroidManifest.xml:11:9-43
+29-->D:\PromodoApp\app\src\main\AndroidManifest.xml:13:9-43
 30        android:label="@string/app_name"
-30-->D:\PromodoApp\app\src\main\AndroidManifest.xml:12:9-41
+30-->D:\PromodoApp\app\src\main\AndroidManifest.xml:14:9-41
 31        android:roundIcon="@mipmap/ic_launcher_round"
-31-->D:\PromodoApp\app\src\main\AndroidManifest.xml:13:9-54
+31-->D:\PromodoApp\app\src\main\AndroidManifest.xml:15:9-54
 32        android:supportsRtl="true"
-32-->D:\PromodoApp\app\src\main\AndroidManifest.xml:14:9-35
+32-->D:\PromodoApp\app\src\main\AndroidManifest.xml:16:9-35
 33        android:testOnly="true"
 34        android:theme="@style/Theme.PromodoApp" >
-34-->D:\PromodoApp\app\src\main\AndroidManifest.xml:15:9-48
+34-->D:\PromodoApp\app\src\main\AndroidManifest.xml:17:9-48
 35        <activity
-35-->D:\PromodoApp\app\src\main\AndroidManifest.xml:17:9-21:55
+35-->D:\PromodoApp\app\src\main\AndroidManifest.xml:19:9-23:55
 36            android:name="com.example.promodoapp.ui.theme.screens.MainScreen"
-36-->D:\PromodoApp\app\src\main\AndroidManifest.xml:18:13-56
+36-->D:\PromodoApp\app\src\main\AndroidManifest.xml:20:13-56
 37            android:exported="false"
-37-->D:\PromodoApp\app\src\main\AndroidManifest.xml:19:13-37
+37-->D:\PromodoApp\app\src\main\AndroidManifest.xml:21:13-37
 38            android:label="@string/title_activity_main_screen"
-38-->D:\PromodoApp\app\src\main\AndroidManifest.xml:20:13-63
+38-->D:\PromodoApp\app\src\main\AndroidManifest.xml:22:13-63
 39            android:theme="@style/Theme.PromodoApp" />
-39-->D:\PromodoApp\app\src\main\AndroidManifest.xml:21:13-52
+39-->D:\PromodoApp\app\src\main\AndroidManifest.xml:23:13-52
 40        <activity
-40-->D:\PromodoApp\app\src\main\AndroidManifest.xml:22:9-32:20
+40-->D:\PromodoApp\app\src\main\AndroidManifest.xml:24:9-34:20
 41            android:name="com.example.promodoapp.MainActivity"
-41-->D:\PromodoApp\app\src\main\AndroidManifest.xml:23:13-41
+41-->D:\PromodoApp\app\src\main\AndroidManifest.xml:25:13-41
 42            android:exported="true"
-42-->D:\PromodoApp\app\src\main\AndroidManifest.xml:24:13-36
+42-->D:\PromodoApp\app\src\main\AndroidManifest.xml:26:13-36
 43            android:label="@string/app_name"
-43-->D:\PromodoApp\app\src\main\AndroidManifest.xml:25:13-45
+43-->D:\PromodoApp\app\src\main\AndroidManifest.xml:27:13-45
 44            android:theme="@style/Theme.PromodoApp" >
-44-->D:\PromodoApp\app\src\main\AndroidManifest.xml:26:13-52
+44-->D:\PromodoApp\app\src\main\AndroidManifest.xml:28:13-52
 45            <intent-filter>
-45-->D:\PromodoApp\app\src\main\AndroidManifest.xml:27:13-31:29
+45-->D:\PromodoApp\app\src\main\AndroidManifest.xml:29:13-33:29
 46                <action android:name="android.intent.action.MAIN" />
-46-->D:\PromodoApp\app\src\main\AndroidManifest.xml:28:17-69
-46-->D:\PromodoApp\app\src\main\AndroidManifest.xml:28:25-66
+46-->D:\PromodoApp\app\src\main\AndroidManifest.xml:30:17-69
+46-->D:\PromodoApp\app\src\main\AndroidManifest.xml:30:25-66
 47
 48                <category android:name="android.intent.category.LAUNCHER" />
-48-->D:\PromodoApp\app\src\main\AndroidManifest.xml:30:17-77
-48-->D:\PromodoApp\app\src\main\AndroidManifest.xml:30:27-74
+48-->D:\PromodoApp\app\src\main\AndroidManifest.xml:32:17-77
+48-->D:\PromodoApp\app\src\main\AndroidManifest.xml:32:27-74
 49            </intent-filter>
 50        </activity>
 51

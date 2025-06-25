@@ -47,7 +47,6 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         // Logo (Thay thế bằng Text tạm thời vì không có hình ảnh)
-        //GifLogo()
         Image(
             painter = painterResource(id = R.drawable.img_logo),
             contentDescription = "Logo",

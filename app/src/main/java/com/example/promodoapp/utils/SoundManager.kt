@@ -10,7 +10,6 @@ object SoundManager {
     private lateinit var soundPool: SoundPool
     private var loaded = false
     private var coinSoundId = 0
-    private var notifySoundId = 0
 
     fun init(context: Context) {
         if (::soundPool.isInitialized) return // chỉ khởi tạo một lần duy nhất

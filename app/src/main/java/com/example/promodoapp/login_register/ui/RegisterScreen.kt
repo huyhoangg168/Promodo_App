@@ -46,7 +46,6 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center
     ) {
         // Logo
-//        GifLogo()
         Image(
             painter = painterResource(id = R.drawable.img_logo),
             contentDescription = "Logo",

@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.random.Random
 
 class MainScreenViewModel : ViewModel() {
     private val authRepository = AuthRepository()
@@ -50,7 +51,7 @@ class MainScreenViewModel : ViewModel() {
     val isWorkPhase: MutableState<Boolean> = _isWorkPhase
 
     // Số xu
-    private val _coins: MutableState<Int> = mutableStateOf(100)
+    private val _coins: MutableState<Int> = mutableStateOf(0)
     val coins: MutableState<Int> = _coins
 
     // Trạng thái video hiện tại (study hoặc chill)
@@ -265,7 +266,7 @@ class MainScreenViewModel : ViewModel() {
 
     // Hàm thưởng xu
     private fun rewardCoins() {
-        _coins.value += 10 // Thưởng 10 xu mỗi chu kỳ
+        _coins.value += Random.nextInt(10,20)// Thưởng random xu mỗi chu kỳ
         Log.d("MainViewModel", "Rewarded 10 coins. Total coins: ${_coins.value}")
 
         // Cập nhật số xu lên Firestore
