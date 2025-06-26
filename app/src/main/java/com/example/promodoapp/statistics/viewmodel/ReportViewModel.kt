@@ -4,12 +4,14 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.promodoapp.model.Session
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.DocumentSnapshot
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlinx.coroutines.tasks.await
 
 class ReportViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
@@ -48,6 +50,10 @@ class ReportViewModel : ViewModel() {
     private val _highlightedDays: MutableState<List<Int>> = mutableStateOf(emptyList())
     val highlightedDays: MutableState<List<Int>> = _highlightedDays
 
+    // Danh sách phiên chi tiết trong ngày
+    private val _sessions: MutableState<List<Session>> = mutableStateOf(emptyList())
+    val sessions: MutableState<List<Session>> = _sessions
+
     init {
         loadDailyStats()
         loadMonthlyStats()
@@ -82,9 +88,28 @@ class ReportViewModel : ViewModel() {
                     .get()
                     .await()
 
+                val sessionList = documents.mapNotNull { doc: DocumentSnapshot ->
+                    val clientStartTime = doc.getLong("clientStartTime")
+                    val formattedTime = clientStartTime?.let { SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(it)) } ?: "N/A"
+                    val type = doc.getString("type") ?: "N/A"
+                    val duration = doc.getLong("duration")?.toInt() ?: 0
+                    if (clientStartTime != null && duration >= 0) {
+                        Session(
+                            userId = userId,
+                            type = type,
+                            duration = duration,
+                            completed = true,
+                            date = fullDate,
+                            clientStartTime = clientStartTime,
+                            formattedTime = formattedTime
+                        )
+                    } else {
+                        null
+                    }
+                }
+                _sessions.value = sessionList
                 _focusSessions.value = documents.size()
-                _totalTime.value =
-                    documents.mapNotNull { it.getLong("duration")?.times(60 * 1000) }.sum()
+                _totalTime.value = documents.mapNotNull { it.getLong("duration")?.times(60 * 1000) }.sum()
             } catch (exception: Exception) {
                 println("Error loading daily stats: ${exception.message}")
             }
@@ -108,7 +133,7 @@ class ReportViewModel : ViewModel() {
                 var sessionsCount = 0
                 var totalDuration = 0L
 
-                for (doc in documents) {
+                for (doc: DocumentSnapshot in documents) {
                     val docDate = doc.getString("date") ?: continue
                     val docYearMonth = docDate.split("/").let { "${it[2]}/${it[1]}" }
                     if (docYearMonth == "$year/$month") {
@@ -140,7 +165,7 @@ class ReportViewModel : ViewModel() {
                     .get()
                     .await()
 
-                val days = documents.mapNotNull { doc ->
+                val days = documents.mapNotNull { doc: DocumentSnapshot ->
                     val docDate = doc.getString("date") ?: return@mapNotNull null
                     val docYearMonth = docDate.split("/").let { "${it[2]}/${it[1]}" }
                     if (docYearMonth == "$year/$month") {

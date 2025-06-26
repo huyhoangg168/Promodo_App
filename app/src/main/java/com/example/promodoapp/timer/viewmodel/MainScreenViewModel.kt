@@ -5,8 +5,8 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewModelScope // Import bổ sung
 import com.example.promodoapp.model.Session
 import com.example.promodoapp.model.User
 import com.example.promodoapp.repository.AuthRepository
@@ -63,7 +63,7 @@ class MainScreenViewModel : ViewModel() {
     val phaseChangeEvent: MutableState<PhaseChangeEvent?> = _phaseChangeEvent
 
     // Biến để lưu thời gian bắt đầu của phiên hiện tại
-    private var currentSessionStartTime: Date? =null
+    private var currentSessionStartTime: Date? = null
 
     // Job để đếm giờ
     private var timerJob: Job? = null
@@ -153,7 +153,7 @@ class MainScreenViewModel : ViewModel() {
             val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
             val date = dateFormatter.format(currentSessionStartTime)
 
-            //Tính thời gian đã học
+            // Tính thời gian đã học
             val timeStudiedInSeconds = _workTime.value * 60 - _currentTime.value
             val timeStudiedInMinutes = timeStudiedInSeconds / 60
 
@@ -164,13 +164,12 @@ class MainScreenViewModel : ViewModel() {
                     duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
                     completed = false,
                     date = date,
-                    startTime = currentSessionStartTime
+                    clientStartTime = currentSessionStartTime?.time // Sử dụng clientStartTime
                 )
                 viewModelScope.launch {
                     try {
-                        // Sử dụng collection mới "sessions_new"
                         userRepository.saveSession(session, "sessions_new")
-                        Log.d("MainViewModel", "Saved canceled session: ${session.type}")
+                        Log.d("MainViewModel", "Saved canceled session: ${session.type}, clientStartTime: ${session.clientStartTime}")
                     } catch (e: Exception) {
                         Log.e("MainViewModel", "Failed to save canceled session: ${e.message}")
                     }
@@ -229,13 +228,12 @@ class MainScreenViewModel : ViewModel() {
                 duration = _workTime.value,
                 completed = true,
                 date = date,
-                startTime = currentSessionStartTime
+                clientStartTime = currentSessionStartTime?.time // Sử dụng clientStartTime
             )
             viewModelScope.launch {
                 try {
-                    // Sử dụng collection mới "sessions_new"
                     userRepository.saveSession(session, "sessions_new")
-                    Log.d("MainViewModel", "Saved session: ${session.type}")
+                    Log.d("MainViewModel", "Saved session: ${session.type}, clientStartTime: ${session.clientStartTime}")
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to save session: ${e.message}")
                 }
@@ -247,14 +245,11 @@ class MainScreenViewModel : ViewModel() {
         if (!_isWorkPhase.value) {
             cycleCompleted = true
             _currentVideo.value = VideoType.Chill
-            //Phát tín hiệu chuyển giai đoạn
             _phaseChangeEvent.value = PhaseChangeEvent.WorkToBreak
         } else {
             _currentVideo.value = VideoType.Study
             if (cycleCompleted) {
-                //Phát tín hiệu chuyển giai đoạn
                 _phaseChangeEvent.value = PhaseChangeEvent.BreakToWork
-                //Cộng xu sau 1 chu kì
                 rewardCoins()
                 cycleCompleted = false
             }
@@ -266,10 +261,9 @@ class MainScreenViewModel : ViewModel() {
 
     // Hàm thưởng xu
     private fun rewardCoins() {
-        _coins.value += Random.nextInt(10,20)// Thưởng random xu mỗi chu kỳ
-        Log.d("MainViewModel", "Rewarded 10 coins. Total coins: ${_coins.value}")
+        _coins.value += Random.nextInt(10, 20) // Thưởng random xu mỗi chu kỳ
+        Log.d("MainViewModel", "Rewarded coins: ${Random.nextInt(10, 20)}. Total coins: ${_coins.value}")
 
-        // Cập nhật số xu lên Firestore
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null) {
             viewModelScope.launch {
@@ -278,10 +272,10 @@ class MainScreenViewModel : ViewModel() {
                         uid = currentUser.uid,
                         email = currentUser.email ?: "",
                         coins = _coins.value,
-                        quote = _quote.value // Giữ quote hiện tại
+                        quote = _quote.value
                     )
                     userRepository.updateUser(updatedUser)
-                    Log.d("MainViewModel", "Updated coins and kept quote: ${_coins.value}, quote: ${_quote.value}")
+                    Log.d("MainViewModel", "Updated coins: ${_coins.value}, quote: ${_quote.value}")
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to update coins: ${e.message}")
                 }
@@ -314,7 +308,7 @@ class MainScreenViewModel : ViewModel() {
         _phaseChangeEvent.value = null
     }
 
-    //Hàm cập nhật quote
+    // Hàm cập nhật quote
     fun updateQuote(newQuote: String) {
         _quote.value = newQuote
         val currentUser = authRepository.getCurrentUser()

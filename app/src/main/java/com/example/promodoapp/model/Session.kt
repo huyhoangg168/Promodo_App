@@ -9,6 +9,7 @@ data class Session(
     val duration: Int = 0,
     val completed: Boolean = false,
     val date: String? = null, // Thêm trường date dạng "dd/MM/yyyy"
-    @ServerTimestamp
-    val startTime: Date? = null
+    val startTime: Long? = null, // Loại bỏ @ServerTimestamp, dùng clientStartTime
+    val clientStartTime: Long? = null, // Thời gian từ client
+    var formattedTime: String = "N/A"
 )
