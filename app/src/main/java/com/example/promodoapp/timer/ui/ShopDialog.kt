@@ -1,4 +1,4 @@
-package com.example.promodoapp.timer.ui
+package com.example.promodoapp.settings.ui
 
 import android.util.Log
 import android.view.ViewGroup
@@ -28,34 +28,24 @@ import com.example.promodoapp.model.ShopItem
 import com.example.promodoapp.timer.viewmodel.ShopViewModel
 
 @Composable
-fun ShopDialog(
+fun AnimationShopDialog(
     viewModel: ShopViewModel,
-    isWorkAnimation: Boolean,
+    animationType: String, // "work" hoặc "break"
     onDismiss: () -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.loadUserData()
-    }
-
+    // Lọc danh sách mục theo loại hoạt ảnh
+    val items = viewModel.shopItems.value.filter { it.id.contains(animationType) }
     var currentIndex by remember { mutableStateOf(0) }
-    val items by viewModel.shopItems // Sử dụng trực tiếp shopItems từ ViewModel
-    val filteredItems = viewModel.getFilteredShopItems(isWorkAnimation)
 
-    if (filteredItems.isEmpty()) {
-        Log.w("ShopDialog", "No items available for isWorkAnimation=$isWorkAnimation")
-        return
-    }
+    // Đảm bảo không truy cập ngoài danh sách
+    if (items.isEmpty()) return
 
-    val currentItem = filteredItems[currentIndex.coerceIn(0, filteredItems.size - 1)]
-
-    LaunchedEffect(currentItem, viewModel.coins.value, viewModel.animationSelectionChanged.value) {
-        Log.d("ShopDialog", "Current item: ${currentItem.name}, Price: ${currentItem.price}, Coins: ${viewModel.coins.value}, IsPurchased: ${currentItem.isPurchased}, IsSelected: ${currentItem.isSelected}")
-    }
-
+    val currentItem = items[currentIndex]
     val context = LocalContext.current
     var videoViewInstance by remember { mutableStateOf<VideoView?>(null) }
 
-    LaunchedEffect(currentIndex, viewModel.animationSelectionChanged.value) {
+    // Cập nhật video khi mục hiện tại thay đổi
+    LaunchedEffect(currentIndex) {
         videoViewInstance?.pause()
         videoViewInstance?.seekTo(0)
         val videoResId = currentItem.resourceId
@@ -77,6 +67,7 @@ fun ShopDialog(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Tiêu đề
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -85,19 +76,20 @@ fun ShopDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (isWorkAnimation) "Work Animations" else "Break Animations",
+                        text = if (animationType == "work") "Hoạt ảnh tập trung" else "Hoạt ảnh nghỉ ngơi",
                         fontSize = 20.sp,
                         color = Color.Black
                     )
                     if (!currentItem.isPurchased) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_lock),
+                            imageVector = Icons.Default.Lock,
                             contentDescription = "Lock",
                             modifier = Modifier.size(24.dp)
                         )
                     }
                 }
 
+                // Các mũi tên điều hướng
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -130,7 +122,7 @@ fun ShopDialog(
                                 setOnPreparedListener { mp ->
                                     mp.isLooping = true
                                     seekTo(1)
-                                    Log.d("ShopDialog", "Video prepared to: $videoResId")
+                                    Log.d("AnimationShopDialog", "Video prepared to: $videoResId")
                                 }
                                 videoViewInstance = this
                             }
@@ -147,14 +139,15 @@ fun ShopDialog(
                         modifier = Modifier
                             .size(35.dp)
                             .clickable {
-                                if (currentIndex < filteredItems.size - 1) {
+                                if (currentIndex < items.size - 1) {
                                     currentIndex++
                                 }
                             },
-                        tint = if (currentIndex < filteredItems.size - 1) Color.Black else Color.Gray
+                        tint = if (currentIndex < items.size - 1) Color.Black else Color.Gray
                     )
                 }
 
+                // Nút mua hoặc chọn
                 if (!currentItem.isPurchased) {
                     Row(
                         modifier = Modifier
@@ -176,22 +169,25 @@ fun ShopDialog(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.purchaseItem(currentItem) },
+                        onClick = { viewModel.purchaseItem(currentItem)
+                                    viewModel.loadUserData() // Tải lại dữ liệu để cập nhật trạng thái
+                        },
                         enabled = viewModel.coins.value >= currentItem.price,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Buy")
+                        Text("Mua")
                     }
                 } else {
                     Button(
-                        onClick = { viewModel.selectItem(currentItem) },
+                        onClick = { viewModel.selectItem(currentItem)
+                        },
                         enabled = !currentItem.isSelected,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = if (currentItem.isSelected) Color.Gray else Color.Green
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(if (currentItem.isSelected) "Using" else "Use")
+                        Text(if (currentItem.isSelected) "Đang sử dụng" else "Sử dụng")
                     }
                 }
             }

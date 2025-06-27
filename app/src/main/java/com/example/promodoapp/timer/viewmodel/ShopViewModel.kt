@@ -70,7 +70,6 @@ class ShopViewModel(
                 resourceId = R.raw.vd_chilling
             )
         )
-        Log.d("ShopViewModel", "Loaded shop items: ${_shopItems.value.map { it.name }}")
     }
 
     fun loadUserData() {
@@ -81,7 +80,6 @@ class ShopViewModel(
                     val userData = userRepository.getUser(currentUser.uid)
                     if (userData != null) {
                         _user.value = userData
-                        mainScreenViewModel.coins.value = userData.coins
                         _shopItems.value = _shopItems.value.map { item ->
                             item.copy(
                                 isPurchased = userData.purchasedAnimations.contains(item.id),
@@ -92,40 +90,12 @@ class ShopViewModel(
                                 }
                             )
                         }
-                        Log.d("ShopViewModel", "Loaded user data: coins=${userData.coins}, purchasedAnimations=${userData.purchasedAnimations}, selectedAnimationWork=${userData.selectedAnimationWork}, selectedAnimationBreak=${userData.selectedAnimationBreak}")
-                        Log.d("ShopViewModel", "Updated shop items: ${_shopItems.value.map { "${it.name}: isPurchased=${it.isPurchased}, isSelected=${it.isSelected}" }}")
-                    } else {
-                        // Khởi tạo người dùng mới
-                        val newUser = User(
-                            uid = currentUser.uid,
-                            email = currentUser.email ?: "",
-                            coins = 0,
-                            quote = "Stay focused and keep going!",
-                            purchasedAnimations = mutableListOf("default_work", "default_break"),
-                            selectedAnimationWork = "default_work",
-                            selectedAnimationBreak = "default_break"
-                        )
-                        userRepository.saveUser(newUser)
-                        _user.value = newUser
-                        mainScreenViewModel.coins.value = newUser.coins
-                        _shopItems.value = _shopItems.value.map { item ->
-                            item.copy(
-                                isPurchased = newUser.purchasedAnimations.contains(item.id),
-                                isSelected = if (item.id.contains("work")) {
-                                    item.id == newUser.selectedAnimationWork
-                                } else {
-                                    item.id == newUser.selectedAnimationBreak
-                                }
-                            )
-                        }
-                        Log.d("ShopViewModel", "Initialized new user: coins=${newUser.coins}, purchasedAnimations=${newUser.purchasedAnimations}")
+                        Log.d("ShopViewModel", "Loaded user data: coins=${userData.coins}")
                     }
                 } catch (e: Exception) {
                     Log.e("ShopViewModel", "Failed to load user data: ${e.message}")
                 }
             }
-        } else {
-            Log.w("ShopViewModel", "No user logged in")
         }
     }
 
@@ -137,7 +107,7 @@ class ShopViewModel(
         }
 
         if (mainScreenViewModel.coins.value < item.price) {
-            Log.w("ShopViewModel", "Not enough coins to purchase ${item.name}. Current coins: ${mainScreenViewModel.coins.value}, Price: ${item.price}")
+            Log.w("ShopViewModel", "Not enough coins to purchase ${item.name}")
             return
         }
 
@@ -148,32 +118,17 @@ class ShopViewModel(
                     val updatedPurchasedAnimations = user.purchasedAnimations.toMutableList().apply {
                         if (!contains(item.id)) add(item.id)
                     }
-                    val isWorkAnimation = item.id.contains("work")
                     val updatedUser = user.copy(
                         coins = user.coins - item.price,
-                        purchasedAnimations = updatedPurchasedAnimations,
-                        selectedAnimationWork = if (isWorkAnimation) item.id else user.selectedAnimationWork,
-                        selectedAnimationBreak = if (!isWorkAnimation) item.id else user.selectedAnimationBreak
+                        purchasedAnimations = updatedPurchasedAnimations
                     )
                     userRepository.updateUser(updatedUser)
                     _user.value = updatedUser
                     mainScreenViewModel.coins.value = updatedUser.coins
                     _shopItems.value = _shopItems.value.map {
-                        if (it.id == item.id) {
-                            it.copy(isPurchased = true, isSelected = true)
-                        } else {
-                            if (isWorkAnimation && it.id.contains("work")) {
-                                it.copy(isSelected = false)
-                            } else if (!isWorkAnimation && it.id.contains("break")) {
-                                it.copy(isSelected = false)
-                            } else {
-                                it
-                            }
-                        }
+                        if (it.id == item.id) it.copy(isPurchased = true) else it
                     }
-                    _animationSelectionChanged.value = System.currentTimeMillis()
-                    Log.d("ShopViewModel", "Purchased ${item.name}. New coin balance: ${mainScreenViewModel.coins.value}, Purchased animations: ${updatedUser.purchasedAnimations}")
-                    Log.d("ShopViewModel", "Updated shop items after purchase: ${_shopItems.value.map { "${it.name}: isPurchased=${it.isPurchased}, isSelected=${it.isSelected}" }}")
+                    Log.d("ShopViewModel", "Purchased ${item.name}. New coin balance: ${mainScreenViewModel.coins.value}")
                 }
             } catch (e: Exception) {
                 Log.e("ShopViewModel", "Failed to purchase item: ${e.message}")
@@ -203,7 +158,9 @@ class ShopViewModel(
                         selectedAnimationBreak = if (!isWorkAnimation) item.id else user.selectedAnimationBreak
                     )
                     userRepository.updateUser(updatedUser)
+                    // Cập nhật _user trước
                     _user.value = updatedUser
+                    // Cập nhật _shopItems để phản ánh trạng thái isSelected
                     _shopItems.value = _shopItems.value.map {
                         if (it.id == item.id) {
                             it.copy(isSelected = true)
@@ -217,9 +174,9 @@ class ShopViewModel(
                             }
                         }
                     }
+                    // Thông báo rằng hoạt ảnh đã được thay đổi
                     _animationSelectionChanged.value = System.currentTimeMillis()
-                    Log.d("ShopViewModel", "Selected ${item.name} for ${if (isWorkAnimation) "work" else "break"} phase. Updated user: selectedAnimationWork=${updatedUser.selectedAnimationWork}, selectedAnimationBreak=${updatedUser.selectedAnimationBreak}")
-                    Log.d("ShopViewModel", "Updated shop items after selection: ${_shopItems.value.map { "${it.name}: isPurchased=${it.isPurchased}, isSelected=${it.isSelected}" }}")
+                    Log.d("ShopViewModel", "Selected ${item.name} for ${if (isWorkAnimation) "work" else "break"} phase")
                 }
             } catch (e: Exception) {
                 Log.e("ShopViewModel", "Failed to select item: ${e.message}")
@@ -235,13 +192,5 @@ class ShopViewModel(
         }
         return _shopItems.value.find { it.id == selectedAnimationId }?.resourceId
             ?: if (videoType == VideoType.Study) R.raw.vd_working else R.raw.vd_chilling2
-    }
-
-    fun getFilteredShopItems(isWorkAnimation: Boolean): List<ShopItem> {
-        val filteredItems = _shopItems.value.filter { item ->
-            if (isWorkAnimation) item.id.contains("work") else item.id.contains("break")
-        }
-        Log.d("ShopViewModel", "Filtered items (isWorkAnimation=$isWorkAnimation): ${filteredItems.map { "${it.name}: isPurchased=${it.isPurchased}, isSelected=${it.isSelected}" }}")
-        return filteredItems
     }
 }

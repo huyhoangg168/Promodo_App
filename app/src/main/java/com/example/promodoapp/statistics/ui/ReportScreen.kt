@@ -195,7 +195,7 @@ fun ReportScreen(
 
             // Thông tin ngày
             Text(
-                text = "Hôm nay $selectedDate",
+                text = "Ngày $selectedDate",
                 fontSize = 20.sp,
                 color = Color.Black
             )

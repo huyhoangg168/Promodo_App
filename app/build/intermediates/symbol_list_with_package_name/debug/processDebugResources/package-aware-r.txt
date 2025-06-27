@@ -133,6 +133,8 @@ drawable ic_chart
 drawable ic_close
 drawable ic_coin
 drawable ic_edit
+drawable ic_eye_close
+drawable ic_eye_open
 drawable ic_launcher_background
 drawable ic_launcher_foreground
 drawable ic_left_arrow

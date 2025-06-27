@@ -37,6 +37,11 @@ import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.PhaseChangeEvent
 import com.example.promodoapp.utils.NotificationHelper
 import com.example.promodoapp.utils.SoundManager
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+
 
 @Composable
 fun MainScreen(
@@ -45,13 +50,14 @@ fun MainScreen(
 ) {
     val shopViewModel = viewModel.shopViewModel
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var videoViewInstance by remember { mutableStateOf<VideoView?>(null) }
     val quote = viewModel.quote.value
     var showQuoteDialog by remember { mutableStateOf(false) }
     var showCustomDialog by remember { mutableStateOf(false) }
     var showReplayConfirmDialog by remember { mutableStateOf(false) }
     var showCancelConfirmDialog by remember { mutableStateOf(false) }
-    var showShopDialog by remember { mutableStateOf(false) }
+    var previousCoins by remember { mutableStateOf(viewModel.coins.value) }
 
     // Yêu cầu quyền POST_NOTIFICATIONS
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -70,8 +76,35 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(viewModel.currentVideo.value, shopViewModel.animationSelectionChanged.value) {
-        Log.d("MainScreen", "Current video changed to: ${viewModel.currentVideo.value}")
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // Khi quay lại MainScreen, tải lại xu và hoạt ảnh
+                viewModel.loadUserCoins()
+                viewModel.shopViewModel.loadUserData()
+            }
+
+                // Nếu đang chạy thì phát lại video
+            if (viewModel.timerState.value == TimerState.Running) {
+                videoViewInstance?.start()
+                Log.d("MainScreen", "Resumed: Video restarted because timer is running")
+            }        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+
+    // Cập nhật video khi video type, hoạt ảnh được chọn, hoặc trạng thái người dùng thay đổi
+    LaunchedEffect(
+        viewModel.currentVideo.value,
+        shopViewModel.animationSelectionChanged.value,
+        shopViewModel.user.value
+    ) {
+        Log.d("MainScreen", "Updating video for: ${viewModel.currentVideo.value}")
         videoViewInstance?.pause()
         videoViewInstance?.seekTo(0)
         val videoResId = viewModel.getCurrentAnimationResource()
@@ -104,26 +137,19 @@ fun MainScreen(
         }
     }
 
-    LaunchedEffect(shopViewModel.user.value, shopViewModel.coins.value) {
-        val videoResId = viewModel.getCurrentAnimationResource()
-        videoViewInstance?.pause()
-        videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
-        videoViewInstance?.seekTo(1)
-    }
-
-    LaunchedEffect(videoViewInstance) {
-        if (viewModel.timerState.value == TimerState.Running) {
-            videoViewInstance?.start()
+    //Phát âm thanh khi nhận xu
+    LaunchedEffect(viewModel.shouldPlayCoinSound.value) {
+        if (viewModel.shouldPlayCoinSound.value) {
+            try {
+                SoundManager.playCoin()
+                Log.d("MainScreen", "Played coin sound")
+            } catch (e: Exception) {
+                Log.e("MainScreen", "Error playing sound: ${e.message}")
+            }
+            viewModel.shouldPlayCoinSound.value = false // reset lại
         }
     }
 
-    LaunchedEffect(viewModel.coins.value) {
-        try {
-            SoundManager.playCoin()
-        } catch (e: Exception) {
-            Log.e("MainScreen", "Error playing sound: ${e.message}")
-        }
-    }
 
     Scaffold(
         bottomBar = {
@@ -244,10 +270,7 @@ fun MainScreen(
 
                 Text(
                     text = "${viewModel.currentTime.value / 60}:${
-                        String.format(
-                            "%02d",
-                            viewModel.currentTime.value % 60
-                        )
+                        String.format("%02d", viewModel.currentTime.value % 60)
                     }",
                     fontSize = 75.sp,
                     modifier = Modifier.padding(16.dp)
@@ -277,6 +300,19 @@ fun MainScreen(
                             videoViewInstance = this
                         }
                     },
+//                    update = {
+//                        val videoResId = viewModel.getCurrentAnimationResource()
+//                        if (it.getTag(R.id.video_resource_id) != videoResId) {
+//                            it.setTag(R.id.video_resource_id, videoResId)
+//                            it.pause()
+//                            it.setVideoPath("android.resource://${context.packageName}/$videoResId")
+//                            it.seekTo(1)
+//                            if (viewModel.timerState.value == TimerState.Running) {
+//                                it.start()
+//                            }
+//                            Log.d("MainScreen", "Video updated to: $videoResId")
+//                        }
+//                    },
                     modifier = Modifier
                         .width(270.dp)
                         .height(200.dp)

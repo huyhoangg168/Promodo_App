@@ -55,8 +55,8 @@
 31-->D:\PromodoApp\app\src\main\AndroidManifest.xml:15:9-54
 32        android:icon="@mipmap/ic_launcher"
 32-->D:\PromodoApp\app\src\main\AndroidManifest.xml:16:9-43
-33        android:label="@string/app_name"
-33-->D:\PromodoApp\app\src\main\AndroidManifest.xml:17:9-41
+33        android:label="PromoCat"
+33-->D:\PromodoApp\app\src\main\AndroidManifest.xml:17:9-33
 34        android:roundIcon="@mipmap/ic_launcher_round"
 34-->D:\PromodoApp\app\src\main\AndroidManifest.xml:18:9-54
 35        android:supportsRtl="true"

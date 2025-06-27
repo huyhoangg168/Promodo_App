@@ -75,13 +75,16 @@ class MainScreenViewModel : ViewModel() {
     private val _quote: MutableState<String> = mutableStateOf("Stay focused and keep going!")
     val quote: MutableState<String> = _quote
 
+    //Tạo cờ đánh dấu phát âm thanh khi nhận xu
+    val shouldPlayCoinSound = mutableStateOf(false)
+
     // Khởi tạo: Tải số xu từ Firestore
     init {
         loadUserCoins()
     }
 
     // Tải số xu từ Firestore
-    private fun loadUserCoins() {
+    fun loadUserCoins() {
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null) {
             viewModelScope.launch {
@@ -263,6 +266,7 @@ class MainScreenViewModel : ViewModel() {
     private fun rewardCoins() {
         _coins.value += Random.nextInt(10, 20) // Thưởng random xu mỗi chu kỳ
         Log.d("MainViewModel", "Rewarded coins: ${Random.nextInt(10, 20)}. Total coins: ${_coins.value}")
+        shouldPlayCoinSound.value = true
 
         val currentUser = authRepository.getCurrentUser()
         if (currentUser != null) {

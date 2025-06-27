@@ -24,7 +24,6 @@ import androidx.navigation.NavController
 import com.example.promodoapp.R
 import com.example.promodoapp.navigation.Screen
 import com.example.promodoapp.settings.viewmodel.SettingsViewModel
-import com.example.promodoapp.timer.ui.ShopDialog
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.ShopViewModel
 
@@ -36,7 +35,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
     mainScreenViewModel: MainScreenViewModel = viewModel()
 ) {
-    val shopViewModel = ShopViewModel(mainScreenViewModel)
+    val shopViewModel = mainScreenViewModel.shopViewModel
     var showWorkAnimationDialog by remember { mutableStateOf(false) }
     var showBreakAnimationDialog by remember { mutableStateOf(false) }
 
@@ -123,7 +122,7 @@ fun SettingsScreen(
             }
 
             SettingsItem(
-                title = "Quản lý quyền",
+                title = "Thay đổi thông tin cá nhân",
                 onClick = { /* Xử lý click */ }
             )
             SettingsItem(
@@ -132,7 +131,7 @@ fun SettingsScreen(
                 onSwitchChange = { viewModel.toggleDarkMode(it) }
             )
             SettingsItem(
-                title = "Cài đặt âm thanh",
+                title = "Đổi mật khẩu",
                 onClick = { /* Xử lý click */ }
             )
             SettingsItem(
@@ -155,20 +154,20 @@ fun SettingsScreen(
         }
     }
 
-    // Hiển thị ShopDialog cho hoạt ảnh tập trung
+    // Dialog cho hoạt ảnh tập trung
     if (showWorkAnimationDialog) {
-        ShopDialog(
+        AnimationShopDialog(
             viewModel = shopViewModel,
-            isWorkAnimation = true,
+            animationType = "work",
             onDismiss = { showWorkAnimationDialog = false }
         )
     }
 
-    // Hiển thị ShopDialog cho hoạt ảnh nghỉ ngơi
+    // Dialog cho hoạt ảnh nghỉ ngơi
     if (showBreakAnimationDialog) {
-        ShopDialog(
+        AnimationShopDialog(
             viewModel = shopViewModel,
-            isWorkAnimation = false,
+            animationType = "break",
             onDismiss = { showBreakAnimationDialog = false }
         )
     }

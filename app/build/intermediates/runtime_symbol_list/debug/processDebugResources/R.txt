@@ -132,6 +132,8 @@ int drawable ic_chart 0x7f04001f
 int drawable ic_close 0x7f040020
 int drawable ic_coin 0x7f040021
 int drawable ic_edit 0x7f040022
+int drawable ic_eye_close 0x7f04003f
+int drawable ic_eye_open 0x7f040040
 int drawable ic_launcher_background 0x7f040023
 int drawable ic_launcher_foreground 0x7f040024
 int drawable ic_left_arrow 0x7f040025
