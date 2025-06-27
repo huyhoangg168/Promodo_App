@@ -1,10 +1,10 @@
 package com.example.promodoapp.timer.ui
 
 import android.Manifest
-import android.media.MediaPlayer
+import android.content.Intent
+import android.os.Build
 import android.util.Log
 import android.view.ViewGroup
-import android.widget.Toast
 import android.widget.VideoView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -12,14 +12,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-//import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
-//import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,22 +26,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.promodoapp.R
 import com.example.promodoapp.navigation.Screen
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Arrangement
-//import androidx.compose.foundation.layout.FlowRowScopeInstance.align
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.rememberNavController
+import com.example.promodoapp.service.TimerService
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.PhaseChangeEvent
-import com.example.promodoapp.timer.viewmodel.ShopViewModel
-import com.example.promodoapp.timer.viewmodel.VideoType
 import com.example.promodoapp.utils.NotificationHelper
 import com.example.promodoapp.utils.SoundManager
 
@@ -54,24 +44,16 @@ fun MainScreen(
     viewModel: MainScreenViewModel,
 ) {
     val shopViewModel = viewModel.shopViewModel
-    // Biến để lưu trữ VideoView
     val context = LocalContext.current
     var videoViewInstance by remember { mutableStateOf<VideoView?>(null) }
-    // Biến để lưu câu quotes
     val quote = viewModel.quote.value
-    // Hiển thị dialog nhập quotes
     var showQuoteDialog by remember { mutableStateOf(false) }
-    // Hiển thị dialog tùy chỉnh thời gian
     var showCustomDialog by remember { mutableStateOf(false) }
-    // Hiển thị dialog xác nhận khi nhấn Replay
     var showReplayConfirmDialog by remember { mutableStateOf(false) }
-    // Hiển thị dialog xác nhận khi nhấn Cancel
     var showCancelConfirmDialog by remember { mutableStateOf(false) }
-    // Hiển thị dialog Shop
     var showShopDialog by remember { mutableStateOf(false) }
-    //Biến để lưu số coin trước khi được cộng
-    var previousCoins by remember { mutableStateOf(viewModel.coins.value) }
-    // Yêu cầu quyền POST_NOTIFICATIONS trên Android 13 trở lên
+
+    // Yêu cầu quyền POST_NOTIFICATIONS
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -82,47 +64,35 @@ fun MainScreen(
         }
     }
 
-    // Kiểm tra và yêu cầu quyền khi khởi động
     LaunchedEffect(Unit) {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            val hasPermission = androidx.core.content.ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-            if (!hasPermission) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
-    // Cập nhật video khi video type hoặc hoạt ảnh được chọn thay đổi
     LaunchedEffect(viewModel.currentVideo.value, shopViewModel.animationSelectionChanged.value) {
         Log.d("MainScreen", "Current video changed to: ${viewModel.currentVideo.value}")
         videoViewInstance?.pause()
         videoViewInstance?.seekTo(0)
-
         val videoResId = viewModel.getCurrentAnimationResource()
         videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
-
         if (viewModel.timerState.value == TimerState.Running) {
             videoViewInstance?.start()
         }
     }
 
-    // Hiển thị thông báo khi chuyển giai đoạn
     LaunchedEffect(viewModel.phaseChangeEvent.value) {
         viewModel.phaseChangeEvent.value?.let { event ->
             when (event) {
                 PhaseChangeEvent.WorkToBreak -> {
-                    // Kết thúc phiên học, chuyển sang phiên nghỉ
                     NotificationHelper.showNotification(
                         context = context,
                         title = "Hết thời gian học!",
                         message = "Đã hoàn thành thời gian học (${viewModel.workTime.value} phút), đến thời gian nghỉ (${viewModel.breakTime.value} phút)!"
                     )
                 }
+
                 PhaseChangeEvent.BreakToWork -> {
-                    // Kết thúc phiên nghỉ, chuyển sang phiên học
                     NotificationHelper.showNotification(
                         context = context,
                         title = "Hết thời gian nghỉ!",
@@ -130,60 +100,66 @@ fun MainScreen(
                     )
                 }
             }
-            // Reset sự kiện sau khi xử lý
             viewModel.resetPhaseChangeEvent()
         }
     }
 
-    //Load hoạt ảnh đã lưu từ trước đó
-    LaunchedEffect(shopViewModel.user.value) {
+    LaunchedEffect(shopViewModel.user.value, shopViewModel.coins.value) {
         val videoResId = viewModel.getCurrentAnimationResource()
         videoViewInstance?.pause()
         videoViewInstance?.setVideoPath("android.resource://${context.packageName}/$videoResId")
         videoViewInstance?.seekTo(1)
     }
 
-    //Chạy tếp video khi chuyển màn
     LaunchedEffect(videoViewInstance) {
         if (viewModel.timerState.value == TimerState.Running) {
             videoViewInstance?.start()
         }
     }
 
-    //Phát âm thanh khi được cộng xu
     LaunchedEffect(viewModel.coins.value) {
-        if (viewModel.coins.value > previousCoins) {
-            try {
-                SoundManager.playCoin()
-            } catch (e: Exception) {
-                Log.e("MainScreen", "Error playing sound: ${e.message}")
-            }
+        try {
+            SoundManager.playCoin()
+        } catch (e: Exception) {
+            Log.e("MainScreen", "Error playing sound: ${e.message}")
         }
-        previousCoins = viewModel.coins.value
     }
 
     Scaffold(
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
-                    icon = { Icon(painterResource(id = R.drawable.ic_timer), contentDescription = "Timer") },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.ic_timer),
+                            contentDescription = "Timer"
+                        )
+                    },
                     label = { Text("Timer") },
                     selected = true,
                     onClick = { /* Đã ở màn Timer */ }
                 )
                 NavigationBarItem(
-                    icon = { Icon(painterResource(id = R.drawable.ic_calendar), contentDescription = "Statistics") },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.ic_calendar),
+                            contentDescription = "Statistics"
+                        )
+                    },
                     label = { Text("Statistics") },
                     selected = false,
                     onClick = { navController.navigate(Screen.Statistics.route) }
                 )
                 NavigationBarItem(
-                    icon = { Icon(painterResource(id = R.drawable.ic_settings), contentDescription = "Settings") },
+                    icon = {
+                        Icon(
+                            painterResource(id = R.drawable.ic_settings),
+                            contentDescription = "Settings"
+                        )
+                    },
                     label = { Text("Settings") },
                     selected = false,
-                    onClick = {
-                        navController.navigate(Screen.Settings.route)
-                    }
+                    onClick = { navController.navigate(Screen.Settings.route) }
                 )
             }
         }
@@ -196,7 +172,6 @@ fun MainScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Phần trên: Số xu
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -228,7 +203,6 @@ fun MainScreen(
                 }
             }
 
-            // Tiêu đề và bút chì
             Column(
                 modifier = Modifier.padding(top = 20.dp)
             ) {
@@ -251,12 +225,10 @@ fun MainScreen(
                 }
             }
 
-            // Phần giữa: Đồng hồ, quotes, video và thời gian
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Quotes
                 Text(
                     text = quote,
                     fontSize = 16.sp,
@@ -270,22 +242,24 @@ fun MainScreen(
                         }
                 )
 
-                // Đồng hồ
                 Text(
-                    text = "${viewModel.currentTime.value / 60}:${String.format("%02d", viewModel.currentTime.value % 60)}",
+                    text = "${viewModel.currentTime.value / 60}:${
+                        String.format(
+                            "%02d",
+                            viewModel.currentTime.value % 60
+                        )
+                    }",
                     fontSize = 75.sp,
                     modifier = Modifier.padding(16.dp)
                 )
 
-                //Trạng thái của app
                 Text(
                     text = if (viewModel.isWorkPhase.value) "Studying ..." else "Chilling ...",
                     fontSize = 20.sp,
-                    color = if (viewModel.isWorkPhase.value) Color(0xFF4CAF50) else Color(0xFF2196F3), // Xanh lá cho học, xanh dương cho nghỉ
+                    color = if (viewModel.isWorkPhase.value) Color(0xFF4CAF50) else Color(0xFF2196F3),
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                // Video
                 AndroidView(
                     factory = {
                         VideoView(it).apply {
@@ -309,7 +283,6 @@ fun MainScreen(
                         .clip(RoundedCornerShape(20))
                 )
 
-                // Thời gian học và nghỉ
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -329,7 +302,6 @@ fun MainScreen(
                 }
             }
 
-            // Phần dưới: Các nút điều khiển
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -341,6 +313,28 @@ fun MainScreen(
                         IconButton(onClick = {
                             viewModel.startTimer()
                             videoViewInstance?.start()
+                            val intent = Intent(context, TimerService::class.java).apply {
+                                action = TimerService.ACTION_START
+                                putExtra(TimerService.EXTRA_WORK_TIME, viewModel.workTime.value)
+                                putExtra(TimerService.EXTRA_BREAK_TIME, viewModel.breakTime.value)
+                                putExtra(
+                                    TimerService.EXTRA_CURRENT_TIME,
+                                    viewModel.currentTime.value
+                                )
+                                putExtra(
+                                    TimerService.EXTRA_IS_WORK_PHASE,
+                                    viewModel.isWorkPhase.value
+                                )
+                                putExtra(
+                                    TimerService.EXTRA_MODE,
+                                    if (viewModel.mode.value == Mode.Pomodoro) "pomodoro" else "custom"
+                                )
+                            }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                context.startForegroundService(intent)
+                            } else {
+                                context.startService(intent)
+                            }
                         }) {
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
@@ -367,10 +361,15 @@ fun MainScreen(
                             )
                         }
                     }
+
                     TimerState.Running -> {
                         IconButton(onClick = {
                             viewModel.pauseTimer()
                             videoViewInstance?.pause()
+                            val intent = Intent(context, TimerService::class.java).apply {
+                                action = TimerService.ACTION_PAUSE
+                            }
+                            context.startService(intent)
                         }) {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_pause),
@@ -379,10 +378,33 @@ fun MainScreen(
                             )
                         }
                     }
+
                     TimerState.Paused -> {
                         IconButton(onClick = {
                             viewModel.startTimer()
                             videoViewInstance?.start()
+                            val intent = Intent(context, TimerService::class.java).apply {
+                                action = TimerService.ACTION_START
+                                putExtra(TimerService.EXTRA_WORK_TIME, viewModel.workTime.value)
+                                putExtra(TimerService.EXTRA_BREAK_TIME, viewModel.breakTime.value)
+                                putExtra(
+                                    TimerService.EXTRA_CURRENT_TIME,
+                                    viewModel.currentTime.value
+                                )
+                                putExtra(
+                                    TimerService.EXTRA_IS_WORK_PHASE,
+                                    viewModel.isWorkPhase.value
+                                )
+                                putExtra(
+                                    TimerService.EXTRA_MODE,
+                                    if (viewModel.mode.value == Mode.Pomodoro) "pomodoro" else "custom"
+                                )
+                            }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                context.startForegroundService(intent)
+                            } else {
+                                context.startService(intent)
+                            }
                         }) {
                             Icon(
                                 imageVector = Icons.Default.PlayArrow,
@@ -414,7 +436,6 @@ fun MainScreen(
         }
     }
 
-    // Dialog tùy chỉnh thời gian
     if (showCustomDialog) {
         CustomTimeDialog(
             viewModel = viewModel,
@@ -422,7 +443,6 @@ fun MainScreen(
         )
     }
 
-    // Dialog nhập quotes
     if (showQuoteDialog) {
         QuoteDialog(
             currentQuote = quote,
@@ -431,7 +451,6 @@ fun MainScreen(
         )
     }
 
-    // Dialog xác nhận khi nhấn Replay
     if (showReplayConfirmDialog) {
         ConfirmDialog(
             message = "Bạn có muốn khởi động lại bộ hẹn giờ? Dữ liệu sẽ không được lưu!",
@@ -440,6 +459,10 @@ fun MainScreen(
             onConfirm = {
                 viewModel.resetTimer()
                 videoViewInstance?.seekTo(0)
+                val intent = Intent(context, TimerService::class.java).apply {
+                    action = TimerService.ACTION_STOP
+                }
+                context.startService(intent)
             },
             onDismiss = {
                 showReplayConfirmDialog = false
@@ -447,7 +470,6 @@ fun MainScreen(
         )
     }
 
-    //Dialog xác nhận khi ấn Cancel
     if (showCancelConfirmDialog) {
         ConfirmDialog(
             message = "Bạn có muốn kết thúc phiên? Dữ liệu của bạn sẽ được lưu vào lịch sử!",
@@ -456,6 +478,10 @@ fun MainScreen(
             onConfirm = {
                 viewModel.cancelTimer()
                 videoViewInstance?.seekTo(0)
+                val intent = Intent(context, TimerService::class.java).apply {
+                    action = TimerService.ACTION_STOP
+                }
+                context.startService(intent)
             },
             onDismiss = {
                 showCancelConfirmDialog = false
@@ -463,7 +489,6 @@ fun MainScreen(
         )
     }
 }
-
 enum class TimerState {
     Idle, Running, Paused
 }

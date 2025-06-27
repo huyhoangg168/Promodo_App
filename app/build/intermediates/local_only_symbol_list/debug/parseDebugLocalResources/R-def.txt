@@ -10,6 +10,7 @@ color white
 drawable ic_calendar
 drawable ic_cancel
 drawable ic_chart
+drawable ic_close
 drawable ic_coin
 drawable ic_edit
 drawable ic_launcher_background

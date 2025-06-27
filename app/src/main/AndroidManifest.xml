@@ -2,8 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
 
     <application
@@ -17,12 +20,9 @@
         android:theme="@style/Theme.PromodoApp"
         tools:targetApi="31">
         <activity
-            android:name=".ui.theme.screens.MainScreen"
-            android:exported="false"
-            android:label="@string/title_activity_main_screen"
-            android:theme="@style/Theme.PromodoApp" />
-        <activity
             android:name=".MainActivity"
+            android:launchMode="singleTask"
+            android:lockTaskMode="if_whitelisted"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.PromodoApp">
@@ -32,6 +32,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".service.TimerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
     </application>
-
 </manifest>

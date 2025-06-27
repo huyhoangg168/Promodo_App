@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -16,19 +17,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.promodoapp.R
 import com.example.promodoapp.navigation.Screen
 import com.example.promodoapp.settings.viewmodel.SettingsViewModel
 import com.example.promodoapp.timer.ui.ShopDialog
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.ShopViewModel
-
 
 @SuppressLint("ViewModelConstructorInComposable")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,9 +36,14 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
     mainScreenViewModel: MainScreenViewModel = viewModel()
 ) {
-
     val shopViewModel = ShopViewModel(mainScreenViewModel)
-    var showShopDialog by remember { mutableStateOf(false) }
+    var showWorkAnimationDialog by remember { mutableStateOf(false) }
+    var showBreakAnimationDialog by remember { mutableStateOf(false) }
+
+    // Tải lại dữ liệu người dùng khi mở màn hình
+    LaunchedEffect(Unit) {
+        shopViewModel.loadUserData()
+    }
 
     Scaffold(
         bottomBar = {
@@ -134,11 +137,11 @@ fun SettingsScreen(
             )
             SettingsItem(
                 title = "Hoạt ảnh tập trung",
-                onClick = { showShopDialog = true }
+                onClick = { showWorkAnimationDialog = true }
             )
             SettingsItem(
                 title = "Hoạt ảnh nghỉ ngơi",
-                onClick = { /* Xử lý click */ }
+                onClick = { showBreakAnimationDialog = true }
             )
 
             Button(
@@ -152,11 +155,21 @@ fun SettingsScreen(
         }
     }
 
-    // Hiển thị ShopDialog khi bấm vào "Hoạt ảnh tập trung"
-    if (showShopDialog) {
+    // Hiển thị ShopDialog cho hoạt ảnh tập trung
+    if (showWorkAnimationDialog) {
         ShopDialog(
             viewModel = shopViewModel,
-            onDismiss = { showShopDialog = false }
+            isWorkAnimation = true,
+            onDismiss = { showWorkAnimationDialog = false }
+        )
+    }
+
+    // Hiển thị ShopDialog cho hoạt ảnh nghỉ ngơi
+    if (showBreakAnimationDialog) {
+        ShopDialog(
+            viewModel = shopViewModel,
+            isWorkAnimation = false,
+            onDismiss = { showBreakAnimationDialog = false }
         )
     }
 }

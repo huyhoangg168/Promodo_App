@@ -8,8 +8,11 @@
         android:minSdkVersion="24"
         android:targetSdkVersion="35" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
@@ -33,14 +36,11 @@
         android:testOnly="true"
         android:theme="@style/Theme.PromodoApp" >
         <activity
-            android:name="com.example.promodoapp.ui.theme.screens.MainScreen"
-            android:exported="false"
-            android:label="@string/title_activity_main_screen"
-            android:theme="@style/Theme.PromodoApp" />
-        <activity
             android:name="com.example.promodoapp.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:lockTaskMode="if_whitelisted"
             android:theme="@style/Theme.PromodoApp" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,6 +49,11 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name="com.example.promodoapp.service.TimerService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
         <service
             android:name="com.google.firebase.components.ComponentDiscoveryService"
             android:directBootAware="true"
