@@ -18,7 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.composable
 import com.example.promodoapp.settings.ui.SettingsScreen
-import com.example.promodoapp.statisticsx.ui.ReportScreen
+import com.example.promodoapp.statistics.ui.ReportScreen
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 
 @SuppressLint("UnrememberedGetBackStackEntry")

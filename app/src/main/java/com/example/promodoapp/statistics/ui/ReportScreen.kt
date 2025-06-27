@@ -1,4 +1,4 @@
-package com.example.promodoapp.statisticsx.ui
+package com.example.promodoapp.statistics.ui
 
 import android.os.Build
 import android.widget.Toast
@@ -42,7 +42,11 @@ fun ReportScreen(
     val monthlyFocusSessions by viewModel.monthlyFocusSessions
     val monthlyTotalTime by viewModel.monthlyTotalTime
     val highlightedDays by viewModel.highlightedDays
+    val sessions by viewModel.sessions
     val context = LocalContext.current
+
+    // State để kiểm soát hiển thị dialog
+    var showDialog by remember { mutableStateOf(false) }
 
     // Hàm điều hướng tháng
     fun updateMonth(offset: Int) {
@@ -60,7 +64,7 @@ fun ReportScreen(
                     icon = { Icon(painterResource(id = R.drawable.ic_timer), contentDescription = "Timer") },
                     label = { Text("Timer") },
                     selected = false,
-                    onClick = {navController.popBackStack(Screen.Main.route, inclusive = false) }
+                    onClick = { navController.popBackStack(Screen.Main.route, inclusive = false) }
                 )
                 NavigationBarItem(
                     icon = { Icon(painterResource(id = R.drawable.ic_calendar), contentDescription = "Statistics") },
@@ -73,7 +77,7 @@ fun ReportScreen(
                     label = { Text("Settings") },
                     selected = false,
                     onClick = {
-                       navController.navigate(Screen.Settings.route)
+                        navController.navigate(Screen.Settings.route)
                     }
                 )
             }
@@ -86,7 +90,7 @@ fun ReportScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            //Tiêu đề
+            // Tiêu đề
             Text(
                 text = "Báo cáo",
                 style = MaterialTheme.typography.headlineMedium,
@@ -169,11 +173,7 @@ fun ReportScreen(
                                     .clickable {
                                         if (dayIndex in 1..daysInMonth) {
                                             viewModel.setSelectedDate("${String.format("%02d", dayIndex)}/${selectedMonth.split("/")[1]}")
-                                            Toast.makeText(
-                                                context,
-                                                "Số lần tập trung: $focusSessions\nThời gian: ${totalTime / 60000} phút",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            showDialog = true
                                         }
                                     },
                                 contentAlignment = Alignment.Center
@@ -237,6 +237,36 @@ fun ReportScreen(
                 text = "Thời gian tập trung hàng tháng: ${monthlyTotalTime / 60000} phút",
                 fontSize = 16.sp,
                 color = Color.Gray
+            )
+        }
+
+        // Dialog hiển thị chi tiết phiên
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                title = { Text("Chi tiết ngày $selectedDate") },
+                text = {
+                    if (sessions.isEmpty() || focusSessions == 0) {
+                        Text("No data", fontSize = 18.sp)
+                    } else {
+                        Column {
+                            sessions.forEach { session ->
+                                Text(
+                                    text = "Thời gian: ${session.formattedTime}, " +
+                                            "Loại: ${session.type}, " +
+                                            "Thời lượng: ${session.duration} phút",
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("Đóng")
+                    }
+                }
             )
         }
     }
