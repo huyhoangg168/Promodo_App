@@ -226,7 +226,7 @@ fun ReportScreen(
                 fontSize = 16.sp,
                 color = Color.Gray
             )
-            Text(gi
+            Text(
                 modifier = Modifier.padding(top = 10.dp),
                 text = "Số lần tập trung hàng tháng: $monthlyFocusSessions lần",
                 fontSize = 16.sp,

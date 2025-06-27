@@ -99,7 +99,7 @@ class TimerService : Service() {
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 "Timer Service",
-                NotificationManager.IMPORTANCE_DEFAULT // Giảm về DEFAULT để tránh rung hoặc âm thanh
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 setShowBadge(true)
@@ -137,13 +137,13 @@ class TimerService : Service() {
             .setContentText("${currentTime / 60}:${String.format("%02d", currentTime % 60)}")
             .setSmallIcon(iconRes)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT) // Giảm ưu tiên để tránh nhấp nháy
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .addAction(R.drawable.ic_pause, "Pause", pausePendingIntent)
             .addAction(R.drawable.ic_close, "Stop", stopPendingIntent)
             .setOngoing(true)
             .setAutoCancel(false)
-            .setOnlyAlertOnce(true) // Ngăn thông báo rung hoặc kêu nhiều lần
+            .setOnlyAlertOnce(true)
             .build()
     }
 
@@ -157,7 +157,7 @@ class TimerService : Service() {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOngoing(true)
                 .setAutoCancel(false)
-                .setOnlyAlertOnce(true) // Đảm bảo không rung/kêu khi cập nhật
+                .setOnlyAlertOnce(true)
                 .build()
             val manager = getSystemService(NotificationManager::class.java)
             manager.notify(NOTIFICATION_ID, notification)
@@ -177,7 +177,7 @@ class TimerService : Service() {
             while (currentTime > 0 && timerState == TimerState.Running) {
                 delay(1000)
                 currentTime--
-                updateNotification() // Cập nhật thời gian mỗi giây
+                updateNotification()
                 Log.d("TimerService", "Timer running: $currentTime seconds remaining")
                 if (currentTime == 0) {
                     switchPhase()
@@ -211,7 +211,7 @@ class TimerService : Service() {
         currentTime = if (isWorkPhase) workTime * 60 else breakTime * 60
         currentSessionStartTime = Date()
         timerState = TimerState.Paused
-        updateNotification() // Cập nhật thông báo khi chuyển giai đoạn
+        updateNotification()
     }
 
     private fun saveSession(completed: Boolean) {
@@ -226,13 +226,14 @@ class TimerService : Service() {
             duration = if (isWorkPhase) workTime else breakTime,
             completed = completed,
             date = date,
-            startTime = currentSessionStartTime
+            clientStartTime = currentSessionStartTime?.time, // Sử dụng clientStartTime thay vì startTime
+            startTime = null // Đặt startTime thành null vì không còn sử dụng
         )
 
         serviceScope.launch {
             try {
                 userRepository.saveSession(session, "sessions_new")
-                Log.d("TimerService", "Saved session: ${session.type}")
+                Log.d("TimerService", "Saved session: ${session.type}, clientStartTime: ${session.clientStartTime}")
             } catch (e: Exception) {
                 Log.e("TimerService", "Failed to save session: ${e.message}")
             }
