@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -98,23 +99,33 @@ fun SettingsScreen(
                         contentDescription = "User Icon",
                         modifier = Modifier.size(48.dp)
                     )
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text(
                         text = "Nguyễn Huy Hoàng", // Có thể thay bằng userName từ ViewModel sau
                         fontSize = 20.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                             Text(text = "Thời gian tập trung", fontSize = 14.sp)
+                            Text(text = "( phút )", fontSize = 14.sp)
                             Text(text = "${viewModel.totalFocusTime.value} phút", fontSize = 14.sp)
                         }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                             Text(text = "Số lần tập trung", fontSize = 14.sp)
+                            Text(text = "( lần )", fontSize = 14.sp)
                             Text(text = "${viewModel.focusSessions.value}", fontSize = 14.sp)
                         }
                     }
@@ -122,7 +133,7 @@ fun SettingsScreen(
             }
 
             SettingsItem(
-                title = "Thay đổi thông tin cá nhân",
+                title = "Quản lý thông tin ",
                 onClick = { /* Xử lý click */ }
             )
             SettingsItem(
@@ -147,8 +158,12 @@ fun SettingsScreen(
                 onClick = { navController.navigate(Screen.Login.route) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 32.dp)
-            ) {
+                    .padding(top = 32.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF00BBF9),   // Màu nền
+                    contentColor = Color.White            // Màu chữ
+                )
+            ){
                 Text("Đăng xuất")
             }
         }
@@ -192,7 +207,11 @@ fun SettingsItem(
         if (switchState != null && onSwitchChange != null) {
             Switch(
                 checked = switchState,
-                onCheckedChange = onSwitchChange
+                onCheckedChange = onSwitchChange,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,       // Màu của nút tròn khi ON
+                    checkedTrackColor = Color.Green   // Màu nền khi ON
+                )
             )
         } else {
             Icon(

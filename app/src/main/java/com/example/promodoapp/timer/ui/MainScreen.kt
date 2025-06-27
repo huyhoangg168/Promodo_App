@@ -300,29 +300,16 @@ fun MainScreen(
                             videoViewInstance = this
                         }
                     },
-//                    update = {
-//                        val videoResId = viewModel.getCurrentAnimationResource()
-//                        if (it.getTag(R.id.video_resource_id) != videoResId) {
-//                            it.setTag(R.id.video_resource_id, videoResId)
-//                            it.pause()
-//                            it.setVideoPath("android.resource://${context.packageName}/$videoResId")
-//                            it.seekTo(1)
-//                            if (viewModel.timerState.value == TimerState.Running) {
-//                                it.start()
-//                            }
-//                            Log.d("MainScreen", "Video updated to: $videoResId")
-//                        }
-//                    },
                     modifier = Modifier
                         .width(270.dp)
                         .height(200.dp)
-                        .clip(RoundedCornerShape(20))
+                        .clip(RoundedCornerShape(30))
                 )
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(10.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     Text(

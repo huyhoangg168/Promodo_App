@@ -45,15 +45,7 @@ class ShopViewModel(
                 id = "default_work",
                 name = "Default Work Animation",
                 price = 0,
-                resourceId = R.raw.vd_working,
-                isPurchased = true,
-                isSelected = true
-            ),
-            ShopItem(
-                id = "default_break",
-                name = "Default Break Animation",
-                price = 0,
-                resourceId = R.raw.vd_chilling2,
+                resourceId = R.raw.vd_working1,
                 isPurchased = true,
                 isSelected = true
             ),
@@ -64,10 +56,54 @@ class ShopViewModel(
                 resourceId = R.raw.vd_working2
             ),
             ShopItem(
-                id = "break_animation_1",
-                name = "Break Animation 1",
+                id = "work_animation_2",
+                name = "Work Animation 2",
+                price = 100,
+                resourceId = R.raw.vd_working3
+            ),
+            ShopItem(
+                id = "work_animation_3",
+                name = "Work Animation 3",
+                price = 150,
+                resourceId = R.raw.vd_working4
+            ),
+            ShopItem(
+                id = "work_animation_4",
+                name = "Work Animation 4",
+                price = 200,
+                resourceId = R.raw.vd_working5
+            ),
+            ShopItem(
+                id = "default_break",
+                name = "Default Break Animation",
+                price = 0,
+                resourceId = R.raw.vd_breaking1,
+                isPurchased = true,
+                isSelected = true
+            ),
+            ShopItem(
+                id = "break_animation_2",
+                name = "Break Animation 2",
                 price = 50,
-                resourceId = R.raw.vd_chilling
+                resourceId = R.raw.vd_breaking2
+            ),
+            ShopItem(
+                id = "break_animation_3",
+                name = "Break Animation 3",
+                price = 100,
+                resourceId = R.raw.vd_breaking3
+            ),
+            ShopItem(
+                id = "break_animation_4",
+                name = "Break Animation 4",
+                price = 150,
+                resourceId = R.raw.vd_breaking4
+            ),
+            ShopItem(
+                id = "break_animation_5",
+                name = "Break Animation 5",
+                price = 200,
+                resourceId = R.raw.vd_breaking5
             )
         )
     }
@@ -191,6 +227,6 @@ class ShopViewModel(
             _user.value?.selectedAnimationBreak ?: "default_break"
         }
         return _shopItems.value.find { it.id == selectedAnimationId }?.resourceId
-            ?: if (videoType == VideoType.Study) R.raw.vd_working else R.raw.vd_chilling2
+            ?: if (videoType == VideoType.Study) R.raw.vd_working1 else R.raw.vd_breaking1
     }
 }

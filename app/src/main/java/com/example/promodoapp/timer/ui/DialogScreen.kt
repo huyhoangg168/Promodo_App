@@ -31,7 +31,8 @@ fun QuoteDialog(
                 value = newQuote,
                 onValueChange = { newQuote = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Enter your motivational quote") }
+                placeholder = { Text("Enter your motivational quote") },
+
             )
         },
         confirmButton = {
@@ -41,23 +42,31 @@ fun QuoteDialog(
                         onQuoteChange(newQuote)
                     }
                     onDismiss()
-                }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                )
             ) {
                 Text("OK")
             }
         },
         dismissButton = {
             Button(
-                onClick = { onDismiss() }
+                onClick = { onDismiss() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                )
             ) {
                 Text("Hủy")
             }
-        }
+        },
+        containerColor = Color.White
     )
 }
 
-
-@Composable
+    @Composable
 fun ConfirmDialog(
     message: String,
     confirmButtonText: String = "",
@@ -151,7 +160,7 @@ fun CustomTimeDialog(
                             containerColor = if (viewModel.mode.value == Mode.Pomodoro) Color(0xFF3B82F6) else Color.LightGray
                         )
                     ) {
-                        Text("Pomodoro (25/5)", color = Color.White)
+                        Text("Pomodoro (25/5)", color = Color.Black)
                     }
                     Button(
                         onClick = {
@@ -161,7 +170,7 @@ fun CustomTimeDialog(
                             containerColor = if (viewModel.mode.value == Mode.Custom) Color(0xFF3B82F6) else Color.LightGray
                         )
                     ) {
-                        Text("Custom", color = Color.White)
+                        Text("Custom", color = Color.Black)
                     }
                 }
 
@@ -188,14 +197,24 @@ fun CustomTimeDialog(
                     onClick = {
                         viewModel.setMode(Mode.Custom, customWorkTime, customBreakTime)
                         onDismiss()
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Color.Black
+                    )
                 ) {
                     Text("OK")
                 }
             }
         },
         dismissButton = {
-            Button(onClick = onDismiss) {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = Color.Black
+                )
+            ) {
                 Text("Cancel")
             }
         },

@@ -195,7 +195,7 @@ MERGED from [com.google.android.play:core-common:2.0.3] C:\Users\nguye\.gradle\c
 	android:supportsRtl
 		ADDED from D:\PromodoApp\app\src\main\AndroidManifest.xml:19:9-35
 	android:label
-		ADDED from D:\PromodoApp\app\src\main\AndroidManifest.xml:17:9-33
+		ADDED from D:\PromodoApp\app\src\main\AndroidManifest.xml:17:9-41
 	android:fullBackupContent
 		ADDED from D:\PromodoApp\app\src\main\AndroidManifest.xml:15:9-54
 	android:roundIcon

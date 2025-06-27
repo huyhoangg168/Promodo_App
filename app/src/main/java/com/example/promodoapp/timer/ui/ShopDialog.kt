@@ -183,7 +183,7 @@ fun AnimationShopDialog(
                         },
                         enabled = !currentItem.isSelected,
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (currentItem.isSelected) Color.Gray else Color.Green
+                            containerColor = if (currentItem.isSelected) Color.Gray else Color(0xFF00BBF9)
                         ),
                         modifier = Modifier.fillMaxWidth()
                     ) {

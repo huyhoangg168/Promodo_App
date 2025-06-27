@@ -6,7 +6,9 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -17,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -246,27 +249,47 @@ fun ReportScreen(
                 onDismissRequest = { showDialog = false },
                 title = { Text("Chi tiết ngày $selectedDate") },
                 text = {
-                    if (sessions.isEmpty() || focusSessions == 0) {
-                        Text("No data", fontSize = 18.sp)
+                    if (sessions.isEmpty()) {
+                        Text("Không có dữ liệu", fontSize = 18.sp)
                     } else {
-                        Column {
+                        val scrollState = rememberScrollState()
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 300.dp)
+                                .verticalScroll(scrollState)
+                        ) {
+                            // Hiển thị header
+                            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                                Text("Thời gian", modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text("Loại", modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                                Text("Thời lượng", modifier = Modifier.weight(1f), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            // Hiển thị từng dòng
                             sessions.forEach { session ->
-                                Text(
-                                    text = "Thời gian: ${session.formattedTime}, " +
-                                            "Loại: ${session.type}, " +
-                                            "Thời lượng: ${session.duration} phút",
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(vertical = 4.dp)
-                                )
+                                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                    Text(session.formattedTime, modifier = Modifier.weight(1f), fontSize = 14.sp)
+                                    Text(session.type, modifier = Modifier.weight(1f), fontSize = 14.sp)
+                                    Text("${session.duration} phút", modifier = Modifier.weight(1f), fontSize = 14.sp)
+                                }
                             }
                         }
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { showDialog = false }) {
+                    TextButton(
+                        onClick = { showDialog = false },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Color.Black
+                        )
+                    ) {
                         Text("Đóng")
                     }
-                }
+                },
+                containerColor = Color.White
             )
         }
     }
