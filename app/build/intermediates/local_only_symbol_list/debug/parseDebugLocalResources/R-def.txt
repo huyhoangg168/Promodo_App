@@ -29,6 +29,7 @@ drawable img_coin
 drawable img_logo
 mipmap ic_launcher
 mipmap ic_launcher_round
+raw coin_purchase
 raw coin_recieve
 raw vd_breaking1
 raw vd_breaking2

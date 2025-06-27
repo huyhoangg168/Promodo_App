@@ -26,6 +26,7 @@ import androidx.compose.ui.window.Dialog
 import com.example.promodoapp.R
 import com.example.promodoapp.model.ShopItem
 import com.example.promodoapp.timer.viewmodel.ShopViewModel
+import com.example.promodoapp.utils.SoundManager
 
 @Composable
 fun AnimationShopDialog(
@@ -169,8 +170,10 @@ fun AnimationShopDialog(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
-                        onClick = { viewModel.purchaseItem(currentItem)
-                                    viewModel.loadUserData() // Tải lại dữ liệu để cập nhật trạng thái
+                        onClick = {
+                            SoundManager.playCoinPurchase()
+                            viewModel.purchaseItem(currentItem)
+                            viewModel.loadUserData() // Tải lại dữ liệu để cập nhật trạng thái
                         },
                         enabled = viewModel.coins.value >= currentItem.price,
                         modifier = Modifier.fillMaxWidth()

@@ -10,6 +10,7 @@ object SoundManager {
     private lateinit var soundPool: SoundPool
     private var loaded = false
     private var coinSoundId = 0
+    private var coinPurchaseSoundId = 0
 
     fun init(context: Context) {
         if (::soundPool.isInitialized) return // chỉ khởi tạo một lần duy nhất
@@ -26,7 +27,7 @@ object SoundManager {
 
         // Load các file âm thanh vào bộ nhớ
         coinSoundId = soundPool.load(context, R.raw.coin_recieve, 1)
-
+        coinPurchaseSoundId = soundPool.load(context, R.raw.coin_purchase, 1)
         soundPool.setOnLoadCompleteListener { _, _, _ ->
             loaded = true
         }
@@ -38,4 +39,9 @@ object SoundManager {
         }
     }
 
+    fun playCoinPurchase() {
+        if (loaded) {
+            soundPool.play(coinPurchaseSoundId, 1f, 1f, 1, 0, 1f)
+        }
+    }
 }
