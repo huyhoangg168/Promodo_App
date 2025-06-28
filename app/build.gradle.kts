@@ -56,6 +56,9 @@ dependencies {
     implementation(libs.androidx.foundation.android)
     implementation(libs.androidx.animation.core.android)
     implementation(libs.androidx.animation.core.android)
+    implementation(libs.androidx.foundation.android)
+    implementation(libs.androidx.foundation.layout.android)
+    implementation(libs.firebase.storage.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -76,6 +79,8 @@ dependencies {
 
     // Push Notification
     implementation ("androidx.core:core:1.12.0")
+
+
 
 }
 

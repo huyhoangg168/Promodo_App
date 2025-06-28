@@ -1,8 +1,13 @@
 package com.example.promodoapp.settings.ui
 
 import android.annotation.SuppressLint
+import android.net.Uri
+import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -12,21 +17,29 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.motionEventSpy
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.example.promodoapp.R
 import com.example.promodoapp.navigation.Screen
+import com.example.promodoapp.repository.UserRepository
 import com.example.promodoapp.settings.viewmodel.SettingsViewModel
+import com.example.promodoapp.timer.ui.ConfirmDialog
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.ShopViewModel
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.launch
 
 @SuppressLint("ViewModelConstructorInComposable")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +52,9 @@ fun SettingsScreen(
     val shopViewModel = mainScreenViewModel.shopViewModel
     var showWorkAnimationDialog by remember { mutableStateOf(false) }
     var showBreakAnimationDialog by remember { mutableStateOf(false) }
+    var showDeleteDBDialog by remember { mutableStateOf(false) }
+    val user = shopViewModel.user.value
+    val coroutineScope = rememberCoroutineScope()
 
     // Tải lại dữ liệu người dùng khi mở màn hình
     LaunchedEffect(Unit) {
@@ -94,17 +110,34 @@ fun SettingsScreen(
                     modifier = Modifier.padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_user),
-                        contentDescription = "User Icon",
-                        modifier = Modifier.size(48.dp)
-                    )
+                    //Avt
+                    if (!user?.avatarUri.isNullOrEmpty()) {
+                        Image(
+                            painter = rememberAsyncImagePainter(Uri.parse(user?.avatarUri)),
+                            contentDescription = "Avatar",
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .border(2.dp, Color.White, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_user),
+                            contentDescription = "User Icon",
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(10.dp))
+
+                    val user = shopViewModel.user.value
                     Text(
-                        text = "Nguyễn Huy Hoàng", // Có thể thay bằng userName từ ViewModel sau
+                        text = user?.username ?: "Chưa đặt tên",
                         fontSize = 20.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
+
                     Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier
@@ -134,7 +167,7 @@ fun SettingsScreen(
 
             SettingsItem(
                 title = "Quản lý thông tin ",
-                onClick = { /* Xử lý click */ }
+                onClick = { navController.navigate(Screen.EditProfile.route) }
             )
             SettingsItem(
                 title = "Chế độ tối",
@@ -143,7 +176,7 @@ fun SettingsScreen(
             )
             SettingsItem(
                 title = "Đổi mật khẩu",
-                onClick = { /* Xử lý click */ }
+                onClick = { navController.navigate(Screen.ChangePwd.route) }
             )
             SettingsItem(
                 title = "Hoạt ảnh tập trung",
@@ -152,6 +185,10 @@ fun SettingsScreen(
             SettingsItem(
                 title = "Hoạt ảnh nghỉ ngơi",
                 onClick = { showBreakAnimationDialog = true }
+            )
+            SettingsItem(
+                title = "Xóa dữ liệu người dùng",
+                onClick = { showDeleteDBDialog = true }
             )
 
             Button(
@@ -184,6 +221,33 @@ fun SettingsScreen(
             viewModel = shopViewModel,
             animationType = "break",
             onDismiss = { showBreakAnimationDialog = false }
+        )
+    }
+
+    //Dialog xóa db user
+    if (showDeleteDBDialog) {
+        ConfirmDialog(
+            message = "Bạn có chắc chắn muốn xóa toàn bộ dữ liệu người dùng? Hành động này không thể hoàn tác.",
+            confirmButtonText = "Xóa",
+            dismissButtonText = "Hủy",
+            onConfirm = {
+                val currentUser = FirebaseAuth.getInstance().currentUser
+                currentUser?.let {
+                    val uid = it.uid
+                    // Gọi hàm xóa dữ liệu
+                    coroutineScope.launch {
+                        try {
+                            UserRepository().deleteUserData(uid)
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(Screen.Settings.route) { inclusive = true }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("DeleteUser", "Failed: ${e.message}")
+                        }
+                    }
+                }
+            },
+            onDismiss = { showDeleteDBDialog = false }
         )
     }
 }

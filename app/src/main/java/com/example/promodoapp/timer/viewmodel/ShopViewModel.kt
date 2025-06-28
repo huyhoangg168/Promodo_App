@@ -115,7 +115,15 @@ class ShopViewModel(
                 try {
                     val userData = userRepository.getUser(currentUser.uid)
                     if (userData != null) {
-                        _user.value = userData
+                        // Nếu username rỗng, cập nhật thành uid
+                        if (userData.username.isEmpty()) {
+                            val updatedUser = userData.copy(username = currentUser.uid)
+                            userRepository.updateUser(updatedUser)
+                            _user.value = updatedUser
+                        } else {
+                            _user.value = userData
+                        }
+
                         _shopItems.value = _shopItems.value.map { item ->
                             item.copy(
                                 isPurchased = userData.purchasedAnimations.contains(item.id),

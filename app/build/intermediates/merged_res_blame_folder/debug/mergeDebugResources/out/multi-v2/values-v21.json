@@ -4,7 +4,7 @@
             "outputFile": "com.example.promodoapp-mergeDebugResources-64:/values-v21/values-v21.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\nguye\\.gradle\\caches\\8.10.2\\transforms\\33ec7bb744e6d998b793489a2822692b\\transformed\\credentials-play-services-auth-1.2.0-rc01\\res\\values-v21\\values-v21.xml",
+                    "source": "C:\\Users\\nguye\\.gradle\\caches\\8.10.2\\transforms\\7c70feff7f6171827b06faee78926aed\\transformed\\credentials-play-services-auth-1.2.0-rc01\\res\\values-v21\\values-v21.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\nguye\\.gradle\\caches\\8.10.2\\transforms\\299166d3b52486ee77aa13178ad5807f\\transformed\\core-1.16.0\\res\\values-v21\\values-v21.xml",
+                    "source": "C:\\Users\\nguye\\.gradle\\caches\\8.10.2\\transforms\\fe191e5868dbce594b7ff88a95fc513c\\transformed\\core-1.16.0\\res\\values-v21\\values-v21.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,13",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",

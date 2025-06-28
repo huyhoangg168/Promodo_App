@@ -5,9 +5,11 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,7 +45,9 @@ fun RegisterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()) // Cho phép cuộn
+            .imePadding(), // Tránh bàn phím
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -215,7 +219,7 @@ fun RegisterScreen(
             is RegisterState.Success -> {
                 Text(
                     text = "Registration successful! Welcome",
-                    color = Color.Green,
+                    color = Color.Blue,
                     modifier = Modifier.padding(top = 16.dp)
                 )
                 // TODO: Chuyển hướng đến màn hình chính sau khi đăng ký thành công

@@ -70,4 +70,16 @@ class UserRepository {
             throw e
         }
     }
+
+    //Xóa dữ liệu người dùng
+    suspend fun deleteUserData(uid: String) {
+        try {
+            Log.d("UserRepository", "Deleting user data for UID: $uid")
+            db.collection("users").document(uid).delete().await()
+            Log.d("UserRepository", "User data deleted")
+        } catch (e: Exception) {
+            Log.e("UserRepository", "Failed to delete user data: ${e.message}")
+            throw e
+        }
+    }
 }

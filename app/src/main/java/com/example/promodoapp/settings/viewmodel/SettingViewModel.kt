@@ -9,6 +9,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.auth.EmailAuthProvider
+import kotlinx.coroutines.tasks.await
+
 
 class SettingsViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
@@ -58,4 +61,30 @@ class SettingsViewModel : ViewModel() {
     fun toggleDarkMode(enabled: Boolean) {
         _darkModeEnabled.value = enabled
     }
+
+    //Đổi mật khẩu
+    fun reauthenticateAndChangePassword(
+        oldPassword: String,
+        newPassword: String,
+        onResult: (Result<Unit>) -> Unit
+    ) {
+        val user = FirebaseAuth.getInstance().currentUser
+        val email = user?.email
+
+        if (user != null && email != null) {
+            viewModelScope.launch {
+                try {
+                    val credential = EmailAuthProvider.getCredential(email, oldPassword)
+                    user.reauthenticate(credential).await()
+                    user.updatePassword(newPassword).await()
+                    onResult(Result.success(Unit))
+                } catch (e: Exception) {
+                    onResult(Result.failure(e))
+                }
+            }
+        } else {
+            onResult(Result.failure(Exception("Người dùng chưa đăng nhập")))
+        }
+    }
+
 }

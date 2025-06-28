@@ -3,6 +3,8 @@ package com.example.promodoapp.model
 data class User(
     val uid: String = "",
     val email: String = "",
+    val username: String = "", // tên user có thể đặt
+    val avatarUri: String = "",
     val coins: Int = 0, // Số xu người dùng, mặc định là 0
     val quote: String = "Stay focused and keep going!",
     val purchasedAnimations: MutableList<String> = mutableListOf(), // Danh sách ID của các hoạt ảnh đã mua

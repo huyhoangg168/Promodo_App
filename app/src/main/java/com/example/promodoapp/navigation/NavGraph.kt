@@ -20,6 +20,8 @@ import androidx.navigation.compose.composable
 import com.example.promodoapp.settings.ui.SettingsScreen
 import com.example.promodoapp.statistics.ui.ReportScreen
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
+import com.example.promodoapp.settings.ui.ChangePasswordScreen
+import com.example.promodoapp.settings.ui.EditProfileScreen
 
 @SuppressLint("UnrememberedGetBackStackEntry")
 @RequiresApi(Build.VERSION_CODES.O)
@@ -81,6 +83,11 @@ fun NavGraph() {
         }
         composable(Screen.Statistics.route){ ReportScreen(navController) }
         composable(Screen.Settings.route){ SettingsScreen(navController) }
+        composable(Screen.ChangePwd.route) { ChangePasswordScreen(navController) }
+        composable(Screen.EditProfile.route) {
+            val mainScreenViewModel : MainScreenViewModel = viewModel()
+            EditProfileScreen(navController, shopViewModel = mainScreenViewModel.shopViewModel)
+        }
     }
 }
 
