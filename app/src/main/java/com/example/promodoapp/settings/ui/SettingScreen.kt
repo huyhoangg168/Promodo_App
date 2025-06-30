@@ -1,7 +1,9 @@
 package com.example.promodoapp.settings.ui
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -25,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,9 +43,12 @@ import com.example.promodoapp.timer.viewmodel.MainScreenViewModel
 import com.example.promodoapp.timer.viewmodel.ShopViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.example.promodoapp.utils.SharedPrefHelper
+
 
 @SuppressLint("ViewModelConstructorInComposable")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
@@ -53,8 +59,10 @@ fun SettingsScreen(
     var showWorkAnimationDialog by remember { mutableStateOf(false) }
     var showBreakAnimationDialog by remember { mutableStateOf(false) }
     var showDeleteDBDialog by remember { mutableStateOf(false) }
+    val showPinDialog = remember { mutableStateOf(false) }
     val user = shopViewModel.user.value
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Tải lại dữ liệu người dùng khi mở màn hình
     LaunchedEffect(Unit) {
@@ -89,7 +97,8 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.Start
         ) {
             Text(
@@ -111,9 +120,10 @@ fun SettingsScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     //Avt
-                    if (!user?.avatarUri.isNullOrEmpty()) {
+                    val savedAvatarUri = SharedPrefHelper.getAvatarUri(context)
+                    if (!savedAvatarUri.isNullOrEmpty()) {
                         Image(
-                            painter = rememberAsyncImagePainter(Uri.parse(user?.avatarUri)),
+                            painter = rememberAsyncImagePainter(Uri.parse(savedAvatarUri)),
                             contentDescription = "Avatar",
                             modifier = Modifier
                                 .size(80.dp)
@@ -170,9 +180,10 @@ fun SettingsScreen(
                 onClick = { navController.navigate(Screen.EditProfile.route) }
             )
             SettingsItem(
-                title = "Chế độ tối",
-                switchState = viewModel.darkModeEnabled.value,
-                onSwitchChange = { viewModel.toggleDarkMode(it) }
+                title = "Bật ghim ứng dụng trong Cài đặt",
+                onClick = {
+                    showPinDialog.value = true
+                }
             )
             SettingsItem(
                 title = "Đổi mật khẩu",
@@ -197,8 +208,8 @@ fun SettingsScreen(
                     .fillMaxWidth()
                     .padding(top = 32.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00BBF9),   // Màu nền
-                    contentColor = Color.White            // Màu chữ
+                    containerColor = Color(0xFF00BBF9),
+                    contentColor = Color.Black
                 )
             ){
                 Text("Đăng xuất")
@@ -248,6 +259,41 @@ fun SettingsScreen(
                 }
             },
             onDismiss = { showDeleteDBDialog = false }
+        )
+    }
+
+    if (showPinDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showPinDialog.value = false },
+            text = {
+                Column {
+                    Image(
+                        painter = painterResource(id = R.drawable.img_tutorial_screen_pinning),
+                        contentDescription = "Hướng dẫn ghim ứng dụng",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(230.dp)
+                            .padding(bottom = 12.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Text(
+                        "Hướng dẫn thực hiện bật ghim ứng dụng:\n" +
+                                "1. Cài đặt\n" +
+                                "2. Bảo mật\n" +
+                                "3. Cài đặt bảo mật khác\n" +
+                                "4. Ghim ứng dụng/ Ghim cửa sổ/ Screen pinning"
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showPinDialog.value = false
+                    val intent = Intent(Settings.ACTION_SECURITY_SETTINGS)
+                    context.startActivity(intent)
+                }) {
+                    Text("Đi đến Cài đặt")
+                }
+            }
         )
     }
 }

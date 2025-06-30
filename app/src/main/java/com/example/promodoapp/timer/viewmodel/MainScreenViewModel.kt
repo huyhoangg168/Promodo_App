@@ -160,7 +160,7 @@ class MainScreenViewModel : ViewModel() {
             val timeStudiedInSeconds = _workTime.value * 60 - _currentTime.value
             val timeStudiedInMinutes = timeStudiedInSeconds / 60
 
-            if (timeStudiedInMinutes > 0) {
+            if (timeStudiedInMinutes > 1) {
                 val session = Session(
                     userId = currentUser.uid,
                     type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
@@ -177,6 +177,8 @@ class MainScreenViewModel : ViewModel() {
                         Log.e("MainViewModel", "Failed to save canceled session: ${e.message}")
                     }
                 }
+            }else{
+                Log.d("MainViewModel", "Session time is too short, not saving session.")
             }
         }
 

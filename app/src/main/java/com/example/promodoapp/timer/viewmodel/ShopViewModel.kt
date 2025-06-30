@@ -124,6 +124,7 @@ class ShopViewModel(
                             _user.value = userData
                         }
 
+                        //Cập nhật amimation
                         _shopItems.value = _shopItems.value.map { item ->
                             item.copy(
                                 isPurchased = userData.purchasedAnimations.contains(item.id),

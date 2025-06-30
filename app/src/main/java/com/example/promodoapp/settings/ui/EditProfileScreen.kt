@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.promodoapp.R
 import com.example.promodoapp.repository.UserRepository
 import com.example.promodoapp.timer.viewmodel.ShopViewModel
+import com.example.promodoapp.utils.SharedPrefHelper
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -42,10 +44,12 @@ fun EditProfileScreen(
     var successMessage by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val context = LocalContext.current
     val imageUri = remember { mutableStateOf<Uri?>(null) }
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? -> imageUri.value = uri }
+
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         TopAppBar(
@@ -65,9 +69,10 @@ fun EditProfileScreen(
                 launcher.launch("image/*")
             }
         ) {
+            val savedAvatarUri = SharedPrefHelper.getAvatarUri(context)
             val avatarPainter = when {
                 imageUri.value != null -> rememberAsyncImagePainter(imageUri.value)
-                !user?.avatarUri.isNullOrEmpty() -> rememberAsyncImagePainter(user?.avatarUri)
+                !savedAvatarUri.isNullOrEmpty() -> rememberAsyncImagePainter(Uri.parse(savedAvatarUri))
                 else -> null
             }
             if (avatarPainter != null) {
@@ -78,7 +83,10 @@ fun EditProfileScreen(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Icon(painter = painterResource(id = R.drawable.ic_user), contentDescription = "Default Avatar", modifier = Modifier.size(80.dp))
+                Icon(painter =
+                    painterResource(id = R.drawable.ic_user),
+                    contentDescription = "Default Avatar",
+                    modifier = Modifier.size(80.dp))
             }
         }
 
@@ -110,14 +118,12 @@ fun EditProfileScreen(
                 if (currentUser != null && user != null) {
                     coroutineScope.launch {
                         try {
-                            val finalAvatarUri = if (imageUri.value != null) {
-                                val storageRef = com.google.firebase.storage.FirebaseStorage.getInstance().reference
-                                val avatarRef = storageRef.child("avatars/${currentUser.uid}.jpg")
-                                avatarRef.putFile(imageUri.value!!).await()
-                                avatarRef.downloadUrl.await().toString()
-                            } else user.avatarUri
+                            val finalAvatarUri = imageUri.value?.toString() ?: SharedPrefHelper.getAvatarUri(context)
+                            finalAvatarUri?.let {
+                                SharedPrefHelper.saveAvatarUri(context, it)
+                            }
 
-                            val updatedUser = user.copy(username = username, avatarUri = finalAvatarUri)
+                            val updatedUser = user.copy(username = username)
                             UserRepository().updateUser(updatedUser)
                             shopViewModel.loadUserData()
                             successMessage = "Cập nhật thành công!"

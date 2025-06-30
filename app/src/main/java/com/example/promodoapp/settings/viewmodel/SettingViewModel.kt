@@ -25,9 +25,10 @@ class SettingsViewModel : ViewModel() {
     private val _focusSessions: MutableState<Int> = mutableStateOf(0)
     val focusSessions: MutableState<Int> = _focusSessions
 
-    // Thêm trong SettingsViewModel.kt
-    private val _darkModeEnabled = mutableStateOf(false)
-    val darkModeEnabled: MutableState<Boolean> = _darkModeEnabled
+    // Trạng thái của switch ghim ứng dụng
+    private val _isScreenPinningEnabled = mutableStateOf(false)
+    val isScreenPinningEnabled: MutableState<Boolean> = _isScreenPinningEnabled
+
 
     init {
         loadUserStats()
@@ -57,9 +58,9 @@ class SettingsViewModel : ViewModel() {
         }
     }
 
-    //Darkmode
-    fun toggleDarkMode(enabled: Boolean) {
-        _darkModeEnabled.value = enabled
+    //Ghim ứng dụng
+    fun toggleScreenPinning(enabled: Boolean) {
+        _isScreenPinningEnabled.value = enabled
     }
 
     //Đổi mật khẩu

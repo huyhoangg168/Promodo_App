@@ -54,6 +54,9 @@ class ReportViewModel : ViewModel() {
     private val _sessions: MutableState<List<Session>> = mutableStateOf(emptyList())
     val sessions: MutableState<List<Session>> = _sessions
 
+    // Lấy trạng thái completed từ MainScreenViewModel (có thể truyền qua constructor hoặc trực tiếp từ ViewModel)
+    var completedState: Boolean = false
+
     init {
         loadDailyStats()
         loadMonthlyStats()
@@ -90,6 +93,7 @@ class ReportViewModel : ViewModel() {
 
                 val sessionList = documents.mapNotNull { doc: DocumentSnapshot ->
                     val clientStartTime = doc.getLong("clientStartTime")
+                    val completed = doc.getBoolean("completed") ?: completedState
                     val formattedTime = clientStartTime?.let { SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(it)) } ?: "N/A"
                     val type = doc.getString("type") ?: "N/A"
                     val duration = doc.getLong("duration")?.toInt() ?: 0
@@ -98,7 +102,7 @@ class ReportViewModel : ViewModel() {
                             userId = userId,
                             type = type,
                             duration = duration,
-                            completed = true,
+                            completed = completed,
                             date = fullDate,
                             clientStartTime = clientStartTime,
                             formattedTime = formattedTime

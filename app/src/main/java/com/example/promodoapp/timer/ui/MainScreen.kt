@@ -123,6 +123,7 @@ fun MainScreen(
                         title = "Hết thời gian học!",
                         message = "Đã hoàn thành thời gian học (${viewModel.workTime.value} phút), đến thời gian nghỉ (${viewModel.breakTime.value} phút)!"
                     )
+                    stopScreenPinning(context)
                 }
 
                 PhaseChangeEvent.BreakToWork -> {
@@ -336,6 +337,7 @@ fun MainScreen(
                         IconButton(onClick = {
                             viewModel.startTimer()
                             videoViewInstance?.start()
+                            startScreenPinning(context)
                             val intent = Intent(context, TimerService::class.java).apply {
                                 action = TimerService.ACTION_START
                                 putExtra(TimerService.EXTRA_WORK_TIME, viewModel.workTime.value)
@@ -501,6 +503,7 @@ fun MainScreen(
             onConfirm = {
                 viewModel.cancelTimer()
                 videoViewInstance?.seekTo(0)
+                stopScreenPinning(context)
                 val intent = Intent(context, TimerService::class.java).apply {
                     action = TimerService.ACTION_STOP
                 }
@@ -512,6 +515,17 @@ fun MainScreen(
         )
     }
 }
+
+fun startScreenPinning(context: android.content.Context) {
+    val activity = context as? android.app.Activity
+    activity?.startLockTask()
+}
+
+fun stopScreenPinning(context: android.content.Context) {
+    val activity = context as? android.app.Activity
+    activity?.stopLockTask()
+}
+
 enum class TimerState {
     Idle, Running, Paused
 }

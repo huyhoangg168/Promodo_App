@@ -150,6 +150,7 @@ drawable ic_timer
 drawable ic_user
 drawable img_coin
 drawable img_logo
+drawable img_tutorial_screen_pinning
 drawable notification_action_background
 drawable notification_bg
 drawable notification_bg_low

@@ -27,6 +27,7 @@ drawable ic_timer
 drawable ic_user
 drawable img_coin
 drawable img_logo
+drawable img_tutorial_screen_pinning
 mipmap ic_launcher
 mipmap ic_launcher_round
 raw coin_purchase
