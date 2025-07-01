@@ -12,11 +12,9 @@ import com.example.promodoapp.login_register.ui.RegisterScreen
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.remember
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.composable
 import com.example.promodoapp.settings.ui.SettingsScreen
 import com.example.promodoapp.statistics.ui.ReportScreen
 import com.example.promodoapp.timer.viewmodel.MainScreenViewModel

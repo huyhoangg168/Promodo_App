@@ -35,7 +35,7 @@ import com.example.promodoapp.login_register.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: LoginViewModel = viewModel() // Khởi tạo thủ công
+    viewModel: LoginViewModel = viewModel() // Khởi tạo view mdodel
 ){
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -52,7 +52,7 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Logo (Thay thế bằng Text tạm thời vì không có hình ảnh)
+        // Logo
         Image(
             painter = painterResource(id = R.drawable.img_logo),
             contentDescription = "Logo",

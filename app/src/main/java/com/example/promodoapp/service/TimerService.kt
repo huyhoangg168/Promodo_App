@@ -115,16 +115,6 @@ class TimerService : Service() {
             this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val pauseIntent = Intent(this, TimerService::class.java).apply { action = ACTION_PAUSE }
-        val pausePendingIntent = PendingIntent.getService(
-            this, 1, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val stopIntent = Intent(this, TimerService::class.java).apply { action = ACTION_STOP }
-        val stopPendingIntent = PendingIntent.getService(
-            this, 2, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         val iconRes = try {
             R.drawable.ic_timer
         } catch (e: Resources.NotFoundException) {
@@ -139,8 +129,6 @@ class TimerService : Service() {
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .addAction(R.drawable.ic_pause, "Pause", pausePendingIntent)
-            .addAction(R.drawable.ic_close, "Stop", stopPendingIntent)
             .setOngoing(true)
             .setAutoCancel(false)
             .setOnlyAlertOnce(true)

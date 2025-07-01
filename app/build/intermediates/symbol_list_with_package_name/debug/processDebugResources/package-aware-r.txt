@@ -286,6 +286,7 @@ layout notification_template_part_chronometer
 layout notification_template_part_time
 mipmap ic_launcher
 mipmap ic_launcher_round
+mipmap ic_logo_app
 raw coin_purchase
 raw coin_recieve
 raw firebase_common_keep

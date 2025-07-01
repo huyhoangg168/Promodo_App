@@ -18,23 +18,6 @@ object NotificationHelper {
     private const val CHANNEL_ID = "pomodoro_channel"
     private const val NOTIFICATION_ID = 1
 
-    // Tạo kênh thông báo (cho Android 8.0 trở lên)
-//    private fun createNotificationChannel(context: Context) {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val name = "Pomodoro Notifications"
-//            val descriptionText = "Notifications for Pomodoro timer events"
-//            val importance = NotificationManager.IMPORTANCE_HIGH
-//            val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-//                description = descriptionText
-//                setSound(null, null)
-//                enableVibration(false)
-//            }
-//            val notificationManager: NotificationManager =
-//                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//            notificationManager.deleteNotificationChannel(CHANNEL_ID)
-//            notificationManager.createNotificationChannel(channel)
-//        }
-//    }
     private fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -44,8 +27,6 @@ object NotificationHelper {
                 val importance = NotificationManager.IMPORTANCE_HIGH
                 val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                     description = descriptionText
-//                    setSound(null, null)
-//                    enableVibration(false)
                 }
                 notificationManager.createNotificationChannel(channel)
             }
@@ -73,7 +54,7 @@ object NotificationHelper {
 
         // Xây dựng thông báo
         val builder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.mipmap.ic_logo_app)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -88,30 +69,6 @@ object NotificationHelper {
             }
         } catch (e: SecurityException) {
             Log.e("NotificationHelper", "SecurityException: ${e.message}")
-            // Vẫn phát âm thanh dù không thể hiển thị thông báo
         }
-
-        // Phát âm thanh
     }
-
-    // Phát âm thanh thông báo
-//    private fun playSound(context: Context) {
-//        val soundPool: SoundPool = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            val audioAttributes = AudioAttributes.Builder()
-//                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
-//                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-//                .build()
-//            SoundPool.Builder()
-//                .setMaxStreams(1)
-//                .setAudioAttributes(audioAttributes)
-//                .build()
-//        } else {
-//            SoundPool(1, android.media.AudioManager.STREAM_NOTIFICATION, 0)
-//        }
-//
-//        val soundId = soundPool.load(context, R.raw.notify_end, 1)
-//        soundPool.setOnLoadCompleteListener { _, _, _ ->
-//            soundPool.play(soundId, 0.5f, 0.5f, 0, 0, 1f)
-//        }
-//    }
 }

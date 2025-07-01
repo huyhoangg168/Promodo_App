@@ -274,14 +274,18 @@ class MainScreenViewModel : ViewModel() {
         if (currentUser != null) {
             viewModelScope.launch {
                 try {
-                    val updatedUser = User(
-                        uid = currentUser.uid,
-                        email = currentUser.email ?: "",
-                        coins = _coins.value,
-                        quote = _quote.value
-                    )
-                    userRepository.updateUser(updatedUser)
-                    Log.d("MainViewModel", "Updated coins: ${_coins.value}, quote: ${_quote.value}")
+                    // Lấy thông tin hiện tại
+                    val existingUser = userRepository.getUser(currentUser.uid)
+                    if (existingUser != null) {
+                        val updatedUser = existingUser.copy(
+                            coins = _coins.value,
+                            quote = _quote.value
+                        )
+                        userRepository.updateUser(updatedUser)
+                        Log.d("MainViewModel", "Updated coins: ${_coins.value}, quote: ${_quote.value}")
+                    } else {
+                        Log.w("MainViewModel", "User not found for coin update")
+                    }
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to update coins: ${e.message}")
                 }
@@ -321,14 +325,14 @@ class MainScreenViewModel : ViewModel() {
         if (currentUser != null) {
             viewModelScope.launch {
                 try {
-                    val updatedUser = User(
-                        uid = currentUser.uid,
-                        email = currentUser.email ?: "",
-                        coins = _coins.value,
-                        quote = newQuote
-                    )
-                    userRepository.updateUser(updatedUser)
-                    Log.d("MainViewModel", "Quote updated to Firestore: $newQuote")
+                    val existingUser = userRepository.getUser(currentUser.uid)
+                    if (existingUser != null) {
+                        val updatedUser = existingUser.copy(quote = newQuote)
+                        userRepository.updateUser(updatedUser)
+                        Log.d("MainViewModel", "Quote updated to Firestore: $newQuote")
+                    } else {
+                        Log.w("MainViewModel", "User not found when updating quote")
+                    }
                 } catch (e: Exception) {
                     Log.e("MainViewModel", "Failed to update quote: ${e.message}")
                 }

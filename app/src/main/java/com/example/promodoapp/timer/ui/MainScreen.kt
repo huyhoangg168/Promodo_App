@@ -114,6 +114,7 @@ fun MainScreen(
         }
     }
 
+    //Cập nhật notify khi chuyển phase
     LaunchedEffect(viewModel.phaseChangeEvent.value) {
         viewModel.phaseChangeEvent.value?.let { event ->
             when (event) {
