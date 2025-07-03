@@ -5,8 +5,7 @@ import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewModelScope // Import bổ sung
+import androidx.lifecycle.viewModelScope
 import com.example.promodoapp.model.Session
 import com.example.promodoapp.model.User
 import com.example.promodoapp.repository.AuthRepository

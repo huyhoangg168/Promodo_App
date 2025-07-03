@@ -29,7 +29,7 @@ class SettingsViewModel : ViewModel() {
         loadUserStats()
     }
 
-    // Tải thống kê người dùng (tổng thời gian và số lần tập trung)
+    // Tải thống kê người dùng
     private fun loadUserStats() {
         val currentUser = auth.currentUser
         if (currentUser != null) {
