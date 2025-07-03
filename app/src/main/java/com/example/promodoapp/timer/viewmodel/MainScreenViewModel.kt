@@ -92,7 +92,7 @@ class MainScreenViewModel : ViewModel() {
                     val user = userRepository.getUser(currentUser.uid)
                     if (user != null) {
                         _coins.value = user.coins
-                        _quote.value = user.quote // Lấy quote từ Firestore
+                        _quote.value = user.quote
                         Log.d("MainViewModel", "Loaded coins: ${user.coins}, quote: ${user.quote}")
                     } else {
                         // Khởi tạo người dùng mới với quote mặc định
@@ -277,11 +277,9 @@ class MainScreenViewModel : ViewModel() {
                     // Lấy thông tin hiện tại
                     val existingUser = userRepository.getUser(currentUser.uid)
                     if (existingUser != null) {
-                        val updatedUser = existingUser.copy(
-                            coins = _coins.value,
-                            quote = _quote.value
-                        )
-                        userRepository.updateUser(updatedUser)
+                        userRepository.updateUser(currentUser.uid, mapOf(
+                            "coins" to _coins.value
+                        ))
                         Log.d("MainViewModel", "Updated coins: ${_coins.value}, quote: ${_quote.value}")
                     } else {
                         Log.w("MainViewModel", "User not found for coin update")
@@ -293,24 +291,6 @@ class MainScreenViewModel : ViewModel() {
         } else {
             Log.w("MainViewModel", "No user logged in, cannot update coins to Firestore")
         }
-    }
-
-    // Hàm cập nhật chế độ
-    private fun updateMode(newMode: Mode, newWorkTime: Int? = null, newBreakTime: Int? = null) {
-        _mode.value = newMode
-        if (newMode == Mode.Pomodoro) {
-            _workTime.value = 25
-            _breakTime.value = 5
-        } else {
-            _workTime.value = newWorkTime ?: _workTime.value
-            _breakTime.value = newBreakTime ?: _breakTime.value
-        }
-        Log.d("MainViewModel", "Mode updated to: ${_mode.value}, Work time: ${_workTime.value}, Break time: ${_breakTime.value}")
-    }
-
-    // Hàm đăng xuất
-    fun logout() {
-        authRepository.logout()
     }
 
     // Reset sự kiện chuyển giai đoạn sau khi UI xử lý
@@ -327,8 +307,10 @@ class MainScreenViewModel : ViewModel() {
                 try {
                     val existingUser = userRepository.getUser(currentUser.uid)
                     if (existingUser != null) {
-                        val updatedUser = existingUser.copy(quote = newQuote)
-                        userRepository.updateUser(updatedUser)
+                        userRepository.updateUser(currentUser.uid, mapOf(
+                            "quote" to _quote.value
+                        ))
+
                         Log.d("MainViewModel", "Quote updated to Firestore: $newQuote")
                     } else {
                         Log.w("MainViewModel", "User not found when updating quote")

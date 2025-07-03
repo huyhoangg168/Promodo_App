@@ -180,7 +180,7 @@ fun SettingsScreen(
                 onClick = { navController.navigate(Screen.EditProfile.route) }
             )
             SettingsItem(
-                title = "Bật ghim ứng dụng trong Cài đặt",
+                title = "Chế độ nghiêm khắc ",
                 onClick = {
                     showPinDialog.value = true
                 }
@@ -277,11 +277,11 @@ fun SettingsScreen(
                         contentScale = ContentScale.Fit
                     )
                     Text(
-                        "Hướng dẫn thực hiện bật ghim ứng dụng:\n" +
+                        "Hướng dẫn thực hiện bật ghim ứng dụng để thực hiện chế độ nghiêm khắc:\n" +
                                 "1. Cài đặt\n" +
                                 "2. Bảo mật\n" +
                                 "3. Cài đặt bảo mật khác\n" +
-                                "4. Ghim ứng dụng/ Ghim cửa sổ/ Screen pinning"
+                                "4. Ghim ứng dụng/ Ghim cửa sổ/ Screen pinning/App pinning"
                     )
                 }
             },
@@ -301,9 +301,7 @@ fun SettingsScreen(
 @Composable
 fun SettingsItem(
     title: String,
-    onClick: () -> Unit = {},
-    switchState: Boolean? = null,
-    onSwitchChange: ((Boolean) -> Unit)? = null
+    onClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -314,21 +312,10 @@ fun SettingsItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = title, fontSize = 16.sp)
-        if (switchState != null && onSwitchChange != null) {
-            Switch(
-                checked = switchState,
-                onCheckedChange = onSwitchChange,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = Color.White,       // Màu của nút tròn khi ON
-                    checkedTrackColor = Color.Green   // Màu nền khi ON
-                )
-            )
-        } else {
-            Icon(
-                imageVector = Icons.Default.ArrowForward,
-                contentDescription = "Next",
-                tint = Color.Gray
-            )
-        }
+        Icon(
+            imageVector = Icons.Default.ArrowForward,
+            contentDescription = "Next",
+            tint = Color.Gray
+        )
     }
 }

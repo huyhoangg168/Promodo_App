@@ -25,11 +25,6 @@ class SettingsViewModel : ViewModel() {
     private val _focusSessions: MutableState<Int> = mutableStateOf(0)
     val focusSessions: MutableState<Int> = _focusSessions
 
-    // Trạng thái của switch ghim ứng dụng
-    private val _isScreenPinningEnabled = mutableStateOf(false)
-    val isScreenPinningEnabled: MutableState<Boolean> = _isScreenPinningEnabled
-
-
     init {
         loadUserStats()
     }
@@ -56,11 +51,6 @@ class SettingsViewModel : ViewModel() {
                 }
             }
         }
-    }
-
-    //Ghim ứng dụng
-    fun toggleScreenPinning(enabled: Boolean) {
-        _isScreenPinningEnabled.value = enabled
     }
 
     //Đổi mật khẩu

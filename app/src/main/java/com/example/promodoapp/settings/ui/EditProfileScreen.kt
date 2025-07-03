@@ -30,7 +30,6 @@ import com.example.promodoapp.timer.viewmodel.ShopViewModel
 import com.example.promodoapp.utils.SharedPrefHelper
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,25 +107,33 @@ fun EditProfileScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = onClick@{
-                if (username.trim().isEmpty()) {
-                    errorMessage = "Tên người dùng không được để trống"
-                    return@onClick
-                }
-
+            onClick = {
                 val currentUser = FirebaseAuth.getInstance().currentUser
                 if (currentUser != null && user != null) {
                     coroutineScope.launch {
                         try {
-                            val finalAvatarUri = imageUri.value?.toString() ?: SharedPrefHelper.getAvatarUri(context)
+                            var hasChanged = false
+
+                            // Kiểm tra nếu có ảnh mới được chọn
+                            val finalAvatarUri = imageUri.value?.toString()
                             finalAvatarUri?.let {
                                 SharedPrefHelper.saveAvatarUri(context, it)
+                                hasChanged = true
                             }
 
-                            val updatedUser = user.copy(username = username)
-                            UserRepository().updateUser(updatedUser)
-                            shopViewModel.loadUserData()
-                            successMessage = "Cập nhật thành công!"
+                            // Cập nhật tên người dùng nếu thay đổi
+                            val trimmedName = username.trim()
+                            if (trimmedName.isNotEmpty() && trimmedName != user.username) {
+                                UserRepository().updateUser(currentUser.uid, mapOf("username" to trimmedName))
+                                shopViewModel.loadUserData()
+                                hasChanged = true
+                            }
+
+                            if (hasChanged) {
+                                successMessage = "Cập nhật thành công!"
+                            } else {
+                                errorMessage = "Bạn chưa thay đổi gì cả."
+                            }
                         } catch (e: Exception) {
                             errorMessage = "Lỗi: ${e.message}"
                         }

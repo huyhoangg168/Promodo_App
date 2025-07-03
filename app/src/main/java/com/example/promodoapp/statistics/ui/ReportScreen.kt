@@ -154,8 +154,8 @@ fun ReportScreen(
             calendar.time = sdf.parse(selectedMonth)!!
             val firstDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH)
             val daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
-            val firstDayOfWeek = (calendar.get(Calendar.DAY_OF_WEEK) + 5) % 7 // Điều chỉnh để CN là 0
-            val offset = (firstDayOfWeek + 6) % 7
+            val firstDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK) // CN=1, T2=2, ..., T7=7
+            val offset = (firstDayOfWeek - 1) // Chuyển CN về 0, T2 về 1, ..., T7 về 6
 
             // Vẽ lịch và tô vàng các ngày có phiên học
             Column {

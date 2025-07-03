@@ -42,14 +42,26 @@ class UserRepository {
         }
     }
 
-    // Cập nhật thông tin người dùng trên Firestore
-    suspend fun updateUser(user: User) {
+//    // Cập nhật thông tin người dùng trên Firestore
+//    suspend fun updateUser(user: User) {
+//        try {
+//            Log.d("UserRepository", "Updating user: ${user.email}")
+//            db.collection("users").document(user.uid).set(user).await()
+//            Log.d("UserRepository", "User updated successfully: ${user.email}")
+//        } catch (e: Exception) {
+//            Log.e("UserRepository", "Failed to update user: ${e.message}")
+//            throw e
+//        }
+//    }
+
+    // Cập nhật từng trường cụ thể của user
+    suspend fun updateUser(uid: String, updates: Map<String, Any>) {
         try {
-            Log.d("UserRepository", "Updating user: ${user.email}")
-            db.collection("users").document(user.uid).set(user).await()
-            Log.d("UserRepository", "User updated successfully: ${user.email}")
+            Log.d("UserRepository", "Updating user fields for UID: $uid with $updates")
+            db.collection("users").document(uid).update(updates).await()
+            Log.d("UserRepository", "User fields updated successfully for UID: $uid")
         } catch (e: Exception) {
-            Log.e("UserRepository", "Failed to update user: ${e.message}")
+            Log.e("UserRepository", "Failed to update user fields: ${e.message}")
             throw e
         }
     }
@@ -75,11 +87,26 @@ class UserRepository {
     suspend fun deleteUserData(uid: String) {
         try {
             Log.d("UserRepository", "Deleting user data for UID: $uid")
+
+            // Lấy dữ liệu phiên
+            val sessionsRef = db.collection("users").document(uid).collection("sessions_new")
+            val sessionDocs = sessionsRef.get().await()
+
+            //Xóa data caác phiên
+            for (doc in sessionDocs.documents) {
+                doc.reference.delete().await()
+            }
+            Log.d("UserRepository", "All sessions_new deleted for user: $uid")
+
+            // Xóa data người dùng chính
             db.collection("users").document(uid).delete().await()
             Log.d("UserRepository", "User data deleted")
+
         } catch (e: Exception) {
             Log.e("UserRepository", "Failed to delete user data: ${e.message}")
             throw e
         }
     }
+
+
 }

@@ -117,9 +117,8 @@ class ShopViewModel(
                     if (userData != null) {
                         // Nếu username rỗng, cập nhật thành uid
                         if (userData.username.isEmpty()) {
-                            val updatedUser = userData.copy(username = currentUser.uid)
-                            userRepository.updateUser(updatedUser)
-                            _user.value = updatedUser
+                            userRepository.updateUser(currentUser.uid, mapOf("username" to currentUser.uid))
+                            _user.value = userData.copy(username = currentUser.uid)
                         } else {
                             _user.value = userData
                         }
@@ -163,13 +162,18 @@ class ShopViewModel(
                     val updatedPurchasedAnimations = user.purchasedAnimations.toMutableList().apply {
                         if (!contains(item.id)) add(item.id)
                     }
-                    val updatedUser = user.copy(
-                        coins = user.coins - item.price,
+                    val newCoins = user.coins - item.price
+
+                    userRepository.updateUser(currentUser.uid, mapOf(
+                        "coins" to newCoins,
+                        "purchasedAnimations" to updatedPurchasedAnimations
+                    ))
+
+                    _user.value = user.copy(
+                        coins = newCoins,
                         purchasedAnimations = updatedPurchasedAnimations
                     )
-                    userRepository.updateUser(updatedUser)
-                    _user.value = updatedUser
-                    mainScreenViewModel.coins.value = updatedUser.coins
+                    mainScreenViewModel.coins.value = newCoins
                     _shopItems.value = _shopItems.value.map {
                         if (it.id == item.id) it.copy(isPurchased = true) else it
                     }
@@ -198,13 +202,18 @@ class ShopViewModel(
                 val user = userRepository.getUser(currentUser.uid)
                 if (user != null) {
                     val isWorkAnimation = item.id.contains("work")
-                    val updatedUser = user.copy(
+                    val updateMap = if (isWorkAnimation) {
+                        mapOf("selectedAnimationWork" to item.id)
+                    } else {
+                        mapOf("selectedAnimationBreak" to item.id)
+                    }
+                    userRepository.updateUser(currentUser.uid, updateMap)
+
+                    _user.value = user.copy(
                         selectedAnimationWork = if (isWorkAnimation) item.id else user.selectedAnimationWork,
                         selectedAnimationBreak = if (!isWorkAnimation) item.id else user.selectedAnimationBreak
                     )
-                    userRepository.updateUser(updatedUser)
-                    // Cập nhật _user trước
-                    _user.value = updatedUser
+
                     // Cập nhật _shopItems để phản ánh trạng thái isSelected
                     _shopItems.value = _shopItems.value.map {
                         if (it.id == item.id) {

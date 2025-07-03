@@ -214,8 +214,7 @@ class TimerService : Service() {
             duration = if (isWorkPhase) workTime else breakTime,
             completed = completed,
             date = date,
-            clientStartTime = currentSessionStartTime?.time, // Sử dụng clientStartTime thay vì startTime
-            startTime = null // Đặt startTime thành null vì không còn sử dụng
+            clientStartTime = currentSessionStartTime?.time, // Sử dụng clientStartTime
         )
 
         serviceScope.launch {

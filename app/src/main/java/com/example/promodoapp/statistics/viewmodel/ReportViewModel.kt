@@ -91,7 +91,7 @@ class ReportViewModel : ViewModel() {
                     .get()
                     .await()
 
-                val sessionList = documents.mapNotNull { doc: DocumentSnapshot ->
+                val rawSessionList = documents.mapNotNull { doc: DocumentSnapshot ->
                     val clientStartTime = doc.getLong("clientStartTime")
                     val completed = doc.getBoolean("completed") ?: completedState
                     val formattedTime = clientStartTime?.let { SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(it)) } ?: "N/A"
@@ -111,9 +111,13 @@ class ReportViewModel : ViewModel() {
                         null
                     }
                 }
+                val sessionList = rawSessionList
+                    .distinctBy { Triple(it.type, it.duration, it.date) }  // Lọc trùng theo clientStartTime
+                    .sortedBy { it.clientStartTime }   // Sắp xếp theo thời gian bắt đầu tăng dần
+
                 _sessions.value = sessionList
-                _focusSessions.value = documents.size()
-                _totalTime.value = documents.mapNotNull { it.getLong("duration")?.times(60 * 1000) }.sum()
+                _focusSessions.value = sessionList.size
+                _totalTime.value = sessionList.sumOf { it.duration.toLong() * 60 * 1000 }
             } catch (exception: Exception) {
                 println("Error loading daily stats: ${exception.message}")
             }
