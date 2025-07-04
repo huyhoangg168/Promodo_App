@@ -155,6 +155,7 @@ class TimerService : Service() {
         }
     }
 
+    //Bđ timer
     private fun startTimer() {
         if (timerState != TimerState.Running) {
             timerState = TimerState.Running
@@ -174,6 +175,7 @@ class TimerService : Service() {
         }
     }
 
+    //Dừng timer
     private fun pauseTimer() {
         if (timerState == TimerState.Running) {
             timerState = TimerState.Paused
@@ -182,6 +184,7 @@ class TimerService : Service() {
         }
     }
 
+    //Hủy timer
     private fun stopTimer() {
         saveSession(completed = false)
         timerJob?.cancel()
@@ -191,6 +194,7 @@ class TimerService : Service() {
         currentSessionStartTime = null
     }
 
+    // Chuyển phase
     private fun switchPhase() {
         if (isWorkPhase) {
             saveSession(completed = true)
@@ -202,30 +206,36 @@ class TimerService : Service() {
         updateNotification()
     }
 
+    //Lưu phiên
     private fun saveSession(completed: Boolean) {
         val currentUser = auth.currentUser ?: return
-        if (currentSessionStartTime == null) return
+        val startTime = currentSessionStartTime ?: return
+
+        val now = Date()
+        val actualDurationMinutes = ((now.time - startTime.time) / 1000 / 60).toInt().coerceAtLeast(1)
 
         val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
-        val date = dateFormatter.format(currentSessionStartTime)
+        val formattedDate = dateFormatter.format(startTime)
+
         val session = Session(
             userId = currentUser.uid,
             type = mode,
-            duration = if (isWorkPhase) workTime else breakTime,
+            duration = actualDurationMinutes,
             completed = completed,
-            date = date,
-            clientStartTime = currentSessionStartTime?.time, // Sử dụng clientStartTime
+            date = formattedDate,
+            clientStartTime = startTime.time
         )
 
         serviceScope.launch {
             try {
                 userRepository.saveSession(session, "sessions_new")
-                Log.d("TimerService", "Saved session: ${session.type}, clientStartTime: ${session.clientStartTime}")
+                Log.d("TimerService", "Saved session: ${session.type}, duration: ${session.duration} mins, startTime: ${session.clientStartTime}")
             } catch (e: Exception) {
                 Log.e("TimerService", "Failed to save session: ${e.message}")
             }
         }
     }
+
 
     override fun onBind(intent: Intent?): IBinder? = null
 

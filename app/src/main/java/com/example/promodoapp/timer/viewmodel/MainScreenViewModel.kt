@@ -149,38 +149,6 @@ class MainScreenViewModel : ViewModel() {
 
     // Hủy đếm giờ
     fun cancelTimer() {
-        // Lưu phiên bị hủy
-        val currentUser = authRepository.getCurrentUser()
-        if (currentUser != null && currentSessionStartTime != null) {
-            val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
-            val date = dateFormatter.format(currentSessionStartTime)
-
-            // Tính thời gian đã học
-            val timeStudiedInSeconds = _workTime.value * 60 - _currentTime.value
-            val timeStudiedInMinutes = timeStudiedInSeconds / 60
-
-            if (timeStudiedInMinutes > 1) {
-                val session = Session(
-                    userId = currentUser.uid,
-                    type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
-                    duration = if (_isWorkPhase.value) _workTime.value else _breakTime.value,
-                    completed = false,
-                    date = date,
-                    clientStartTime = currentSessionStartTime?.time // Sử dụng clientStartTime
-                )
-                viewModelScope.launch {
-                    try {
-                        userRepository.saveSession(session, "sessions_new")
-                        Log.d("MainViewModel", "Saved canceled session: ${session.type}, clientStartTime: ${session.clientStartTime}")
-                    } catch (e: Exception) {
-                        Log.e("MainViewModel", "Failed to save canceled session: ${e.message}")
-                    }
-                }
-            }else{
-                Log.d("MainViewModel", "Session time is too short, not saving session.")
-            }
-        }
-
         timerJob?.cancel()
         _timerState.value = TimerState.Idle
         _isWorkPhase.value = true
@@ -220,30 +188,6 @@ class MainScreenViewModel : ViewModel() {
 
     // Hàm chuyển giai đoạn (học → nghỉ hoặc nghỉ → học)
     private fun switchPhase() {
-        // Lưu phiên vừa hoàn thành
-        val currentUser = authRepository.getCurrentUser()
-        if (currentUser != null && currentSessionStartTime != null && _isWorkPhase.value) {
-            // Chỉ lưu nếu phase hiện tại là học
-            val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
-            val date = dateFormatter.format(currentSessionStartTime)
-            val session = Session(
-                userId = currentUser.uid,
-                type = if (_mode.value == Mode.Pomodoro) "pomodoro" else "custom",
-                duration = _workTime.value,
-                completed = true,
-                date = date,
-                clientStartTime = currentSessionStartTime?.time // Sử dụng clientStartTime
-            )
-            viewModelScope.launch {
-                try {
-                    userRepository.saveSession(session, "sessions_new")
-                    Log.d("MainViewModel", "Saved session: ${session.type}, clientStartTime: ${session.clientStartTime}")
-                } catch (e: Exception) {
-                    Log.e("MainViewModel", "Failed to save session: ${e.message}")
-                }
-            }
-        }
-
         // Sau khi lưu, chuyển phase
         _isWorkPhase.value = !_isWorkPhase.value
         if (!_isWorkPhase.value) {
@@ -325,6 +269,18 @@ class MainScreenViewModel : ViewModel() {
     fun getCurrentAnimationResource(): Int {
         return shopViewModel.getCurrentAnimationResource(_currentVideo.value)
     }
+}
+
+//Hàm start ghim màn hình
+fun startScreenPinning(context: android.content.Context) {
+    val activity = context as? android.app.Activity
+    activity?.startLockTask()
+}
+
+//Hàm stop ghim màn hình
+fun stopScreenPinning(context: android.content.Context) {
+    val activity = context as? android.app.Activity
+    activity?.stopLockTask()
 }
 
 // Enum để biểu thị sự kiện chuyển giai đoạn

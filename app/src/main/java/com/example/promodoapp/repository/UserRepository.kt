@@ -42,18 +42,6 @@ class UserRepository {
         }
     }
 
-//    // Cập nhật thông tin người dùng trên Firestore
-//    suspend fun updateUser(user: User) {
-//        try {
-//            Log.d("UserRepository", "Updating user: ${user.email}")
-//            db.collection("users").document(user.uid).set(user).await()
-//            Log.d("UserRepository", "User updated successfully: ${user.email}")
-//        } catch (e: Exception) {
-//            Log.e("UserRepository", "Failed to update user: ${e.message}")
-//            throw e
-//        }
-//    }
-
     // Cập nhật từng trường cụ thể của user
     suspend fun updateUser(uid: String, updates: Map<String, Any>) {
         try {

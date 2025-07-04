@@ -54,7 +54,7 @@ class ReportViewModel : ViewModel() {
     private val _sessions: MutableState<List<Session>> = mutableStateOf(emptyList())
     val sessions: MutableState<List<Session>> = _sessions
 
-    // Lấy trạng thái completed từ MainScreenViewModel (có thể truyền qua constructor hoặc trực tiếp từ ViewModel)
+    // Lấy trạng thái completed từ MainScreenViewModel
     var completedState: Boolean = false
 
     init {
@@ -86,12 +86,11 @@ class ReportViewModel : ViewModel() {
             try {
                 val documents = db.collection("users").document(userId)
                     .collection("sessions_new")
-                    .whereEqualTo("completed", true)
                     .whereEqualTo("date", fullDate)
                     .get()
                     .await()
 
-                val rawSessionList = documents.mapNotNull { doc: DocumentSnapshot ->
+                val sessionList = documents.mapNotNull { doc: DocumentSnapshot ->
                     val clientStartTime = doc.getLong("clientStartTime")
                     val completed = doc.getBoolean("completed") ?: completedState
                     val formattedTime = clientStartTime?.let { SimpleDateFormat("HH:mm", Locale.ENGLISH).format(Date(it)) } ?: "N/A"
@@ -111,13 +110,11 @@ class ReportViewModel : ViewModel() {
                         null
                     }
                 }
-                val sessionList = rawSessionList
-                    .distinctBy { Triple(it.type, it.duration, it.date) }  // Lọc trùng theo clientStartTime
-                    .sortedBy { it.clientStartTime }   // Sắp xếp theo thời gian bắt đầu tăng dần
-
                 _sessions.value = sessionList
-                _focusSessions.value = sessionList.size
-                _totalTime.value = sessionList.sumOf { it.duration.toLong() * 60 * 1000 }
+                    .distinctBy { it.clientStartTime }  // Lọc trùng theo clientStartTime
+                    .sortedBy { it.clientStartTime }   // Sắp xếp theo thời gian bắt đầu tăng dần
+                _focusSessions.value = documents.size()
+                _totalTime.value = documents.mapNotNull { it.getLong("duration")?.times(60 * 1000) }.sum()
             } catch (exception: Exception) {
                 println("Error loading daily stats: ${exception.message}")
             }
@@ -133,7 +130,6 @@ class ReportViewModel : ViewModel() {
             try {
                 val documents = db.collection("users").document(userId)
                     .collection("sessions_new")
-                    .whereEqualTo("completed", true)
                     .get()
                     .await()
 
@@ -169,7 +165,6 @@ class ReportViewModel : ViewModel() {
             try {
                 val documents = db.collection("users").document(userId)
                     .collection("sessions_new")
-                    .whereEqualTo("completed", true)
                     .get()
                     .await()
 

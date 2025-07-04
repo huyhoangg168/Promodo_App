@@ -41,6 +41,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.promodoapp.timer.viewmodel.startScreenPinning
+import com.example.promodoapp.timer.viewmodel.stopScreenPinning
 
 
 @Composable
@@ -515,16 +517,6 @@ fun MainScreen(
             }
         )
     }
-}
-
-fun startScreenPinning(context: android.content.Context) {
-    val activity = context as? android.app.Activity
-    activity?.startLockTask()
-}
-
-fun stopScreenPinning(context: android.content.Context) {
-    val activity = context as? android.app.Activity
-    activity?.stopLockTask()
 }
 
 enum class TimerState {
